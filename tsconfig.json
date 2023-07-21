@@ -1,13 +1,14 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "module": "esnext",
+    "module": "esnext", 
+    "resolveJsonModule": true, 
     "strict": true,
     "jsx": "preserve",
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "skipLibCheck": true,
-    "esModuleInterop": true,
+    "esModuleInterop": true, 
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "useDefineForClassFields": true,
@@ -33,7 +34,9 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "tests/**/*.tsx",
+    "lib/**/*.ts",
+    "lib/**/*.vue"
   ],
   "exclude": [
     "node_modules"
