@@ -80,7 +80,9 @@ body{
 html{
   overflow-y: scroll;
 }
- 
+textarea {
+  font-family: inherit;
+}
 /*清除浮动*/
 .clearfix:before,
 .clearfix:after{
@@ -98,3 +100,4 @@ html{
 .dn{
   display: none;
 }
+
