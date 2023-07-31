@@ -18,7 +18,7 @@ const options = reactive({
   currentTime: 0, //当前播放时间
   loop: false, //循环播放
   mirror: false, //镜像画面
-  ligthOff: false, //关灯模式
+  lightsOff: false, //关灯模式
   volume: 0.3, //默认音量大小
   control: true, //是否显示控制器
   title: "你好", //视频名称

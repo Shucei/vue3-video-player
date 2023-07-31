@@ -2,6 +2,8 @@
   <div class="player-wrap" :class="{
     'player-wrap-hover':
       state.playBtnState == 'play' || state.isVideoHovering,
+    'is-lightsOff': state.lightsOff,
+    'web-full-screen': state.webFullScreen,
   }">
     <!-- 播放器 -->
     <div class="player-video">
@@ -25,16 +27,19 @@
       </video>
     </div>
 
-    <!-- 控制器 -->
+    <!-- 黑幕关灯模式 -->
+    <transition name="d-fade-in">
+      <div class="player-lightsOff" v-show="state.lightsOff"></div>
+    </transition>
 
+
+    <!-- 控制器 -->
     <div class="player-controller">
       <div class="control-progress">
         <ControlsProgress class="progress-bar" :disabled="!state.speed" :hoverText="state.progressCursorTime"
           :size="'100%'" v-model="state.playProgress" :preload="state.preloadBar"></ControlsProgress>
       </div>
-
       <!-- 控制工具 -->
-
       <div class="control-tool">
         <div class="tool-bar tool-barplayer-icons-left">
           <div class="tool-item">
@@ -90,15 +95,15 @@
               <ul class="speed-main">
                 <li>
                   镜像画面
-                  <d-switch @change="mirrorChange" v-model="state.mirror" />
+                  <PlaySwitch v-model="state.mirror" />
                 </li>
                 <li>
                   循环播放
-                  <d-switch @change="loopChange" v-model="state.loop" />
+                  <PlaySwitch v-model="state.loop" />
                 </li>
                 <li>
                   关灯模式
-                  <d-switch @change="lightOffChange" v-model="state.lightOff" />
+                  <PlaySwitch v-model="state.lightsOff" />
                 </li>
               </ul>
             </div>
@@ -130,6 +135,7 @@
 <script lang="ts" setup>
 import SvgIcon from "../components/SvgIcon.vue";
 import ControlsProgress from "../components/ControlsProgress.vue";
+import PlaySwitch from "../components/PlaySwitch.vue";
 import { defineProps, reactive } from "vue";
 import { defaultProps } from "./defaultProps";
 import { isMobile } from "../utils/util";

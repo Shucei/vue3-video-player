@@ -33,7 +33,7 @@ export const defaultProps = {
   autoPlay: { type: Boolean, default: false }, //自动播放
   loop: { type: Boolean, default: false }, //循环播放
   mirror: { type: Boolean, default: false }, //镜像画面
-  ligthOff: { type: Boolean, default: false }, //关灯模式
+  lightsOff: { type: Boolean, default: false }, //关灯模式
   volume: { type: [String, Number], default: 0.3 }, //默认音量大小
   control: { type: Boolean, default: true }, //是否显示控制器
   controlBtns: {
