@@ -3,5 +3,71 @@
   position: relative;
   overflow: hidden;
   background-color: #000;
+  
+  &.web-full-screen {
+    z-index: 9999999;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+  }
+
+  .player-video {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    font-size: 0;
+    // 视频主体
+    .player-video-main {
+      width: 100%;
+      height: 100%;
+      transition: .2s;
+      object-fit: cover; 
+      // 镜像效果
+      &.video-mirror {
+        transform: rotateY(180deg);
+      }
+    }
+  }
+
+  // 控制器
+  .player-controller{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 45px;
+    width: 100%;
+    padding: 0 20px;
+    -webkit-user-select: none; 
+    -moz-user-select: none; 
+    user-select: none;
+    transition: all 0.3s ease;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.4) 100%);
+    z-index: 2;
+    // transform: translateY(45px);
+    .control-progress {
+      width: 100%;
+      position: relative;
+      height: 10px;
+      cursor: pointer;
+
+      .progress-bar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        transition: height 0.1s;
+        height: 3px;
+        z-index: 1;
+
+      }
+
+
+    }
+  }
 
 }

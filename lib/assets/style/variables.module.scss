@@ -2,23 +2,24 @@
 $IconSize: 16px;
 $IconColor: #fff;
 
+// 字体主题相关的变量值：
+$font-color:#409eff;
+
 // 播放器尺寸相关的变量值：
 $player-width: 800px;
 $player-height: 450px;
 
 // 控制条相关的变量值：
 $control-bar-height: 40px;
-$control-bar-background-color: #f2f2f2;
-$control-bar-text-color: #333;
 
 // 播放按钮相关的变量值：
 $play-button-size: 50px;
-$play-button-color: #ff0000;
+
 
 // 进度条相关的变量值：
 $progress-bar-height: 6px;
 $progress-bar-background-color: #ccc;
-$progress-bar-fill-color: #ff0000;
+
 
 // 时间显示相关的变量值：
 $time-display-color: #fff;
@@ -27,15 +28,12 @@ $time-display-color: #fff;
 :export {
   IconSize: $IconSize;
   IconColor: $IconColor;
+  fontColor: $font-color;
   playerWidth: $player-width;
   playerHeight: $player-height;
   controlBarHeight: $control-bar-height;
-  controlBarBackgroundColor: $control-bar-background-color;
-  controlBarTextColor: $control-bar-text-color;
   playButtonSize: $play-button-size;
-  playButtonColor: $play-button-color;
   progressBarHeight: $progress-bar-height;
   progressBarBackgroundColor: $progress-bar-background-color;
-  progressBarFillColor: $progress-bar-fill-color;
   timeDisplayColor: $time-display-color;
 }

@@ -1,6 +1,6 @@
 <template>
   <div style="text-align: center;width: 700px;">
-    <videoPlay ref="video" style="display: inline-block; width: 100%" v-bind="options" />
+    <videoPlay ref="video" v-bind="options" />
   </div>
 </template>
 
@@ -10,7 +10,7 @@ import { videoPlay } from "../lib/index";
 
 const options = reactive({
   width: "800px", //播放器宽度
-  height: "450px", //播放器高度
+  height: "500px", //播放器高度
   color: "#409eff", //主题色
   muted: false, //静音
   webFullScreen: false, //网页全屏
