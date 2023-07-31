@@ -1,108 +1,138 @@
+
 <template>
-  <div class="controls">
-    <div class="progress-bar" @click="seek($event)">
-      <div class="progress" :style="{ width: `${progress}%` }"></div>
-    </div>
-    <div class="volume-bar" @click="adjustVolume($event)">
-      <div class="volume" :style="{ width: `${volume}%` }"></div>
+  <!-- :class="{ 'is-vertical': props.vertical }" -->
+  <div ref="refProgress" class="d-progress">
+    <div class="d-progress__runway">
+      <div class="d-progress__cursor">
+        <div class="d-progress__tips" ref="refTips">666</div>
+      </div>
+      <div class="d-progress__preload"></div>
+      <div class="d-progress__bar"></div>
     </div>
   </div>
 </template>
-<script></script>
-
+<script lang="ts">
+export default {
+  name: 'DProgress'
+}
+</script>
 <script setup lang="ts">
-// import { ref, onMounted } from 'vue';
 
-// const progress = ref(0);
-// const volume = ref(50);
 
-// const videoRef = ref<HTMLVideoElement | null>(null);
-
-// // 更新进度条
-// const updateProgressBar = () => {
-//   if (videoRef.value) {
-//     const progressValue = (videoRef.value.currentTime / videoRef.value.duration) * 100;
-//     progress.value = progressValue;
-//   }
-// };
-
-// // 更新声音控制
-// const updateVolume = () => {
-//   if (videoRef.value) {
-//     const volumeValue = (videoRef.value.volume) * 100;
-//     volume.value = volumeValue;
-//   }
-// };
-
-// // 点击进度条跳转
-// const seek = (event: MouseEvent) => {
-//   if (videoRef.value) {
-//     const position = event.offsetX / (event.currentTarget as HTMLElement).offsetWidth;
-//     videoRef.value.currentTime = position * videoRef.value.duration;
-//   }
-// };
-
-// // 点击声音控制调整音量
-// const adjustVolume = (event: MouseEvent) => {
-//   if (videoRef.value) {
-//     const volumeValue = event.offsetX / (event.currentTarget as HTMLElement).offsetWidth;
-//     videoRef.value.volume = volumeValue;
-//   }
-// };
-
-// onMounted(() => {
-//   if (videoRef.value) {
-//     videoRef.value.addEventListener('timeupdate', updateProgressBar);
-//     videoRef.value.addEventListener('volumechange', updateVolume);
-//   }
-// });
 </script>
 
-<style scoped>
-.video-player {
+<style lang='scss' scoped>
+.d-progress {
   position: relative;
-}
 
-.video-player video {
-  width: 100%;
-}
+  .d-progress__runway {
+    width: 100%;
+    // height: v-bind(size);
+    background-color: #333333;
+    position: relative;
+    cursor: pointer;
+    vertical-align: middle;
 
-.controls {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 10px;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-}
+    .d-progress__cursor,
+    .d-progress__preload,
+    .d-progress__bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+    }
 
-.progress-bar,
-.volume-bar {
-  flex-grow: 1;
-  height: 5px;
-  background-color: #fff;
-  margin: 0 10px;
-  position: relative;
-  cursor: pointer;
-}
+    .d-progress__cursor {
+      display: none; //TODO
+      z-index: 1;
+      width: 1px;
+      background: #fff;
+      pointer-events: none;
 
-.progress,
-.volume {
-  height: 100%;
-  background-color: #f00;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
+      .d-progress__tips {
+        pointer-events: none;
+        color: #fff;
+        position: absolute;
+        white-space: nowrap;
+        z-index: 2;
+        bottom: 14px;
+        left: 50%;
+        padding: 4px;
+        box-sizing: border-box;
+        display: block;
+        font-size: 12px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 3px;
+        transform: translateX(-50%);
+      }
+    }
 
-.volume-bar {
-  width: 100px;
-}
+    &:hover .d-progress__cursor {
+      display: block;
+    }
 
-.volume {
-  width: 50%;
+    // 预加载进度条
+    .d-progress__preload {
+      background: #717171;
+    }
+
+    // 颜色进度条
+    .d-progress__bar {
+      background: linear-gradient(to right,
+          #52a0fd 0%,
+          #00e2fa 80%,
+          #00e2fa 100%);
+
+      &::before {
+        display: block;
+        content: "";
+        position: absolute;
+        right: -5px;
+        top: 50%;
+        width: 6px;
+        height: 6px;
+        transition: 0.2s;
+        // transform: translateY(-50%) scale(1, 1);
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 0 0 3px #409eff;
+      }
+    }
+  }
+
+  // 垂直模式
+  // &.is-vertical {
+  //   height: 100%;
+  //   display: inline-block;
+
+  //   .d-progress__runway {
+  //     position: relative;
+  //     height: 100%;
+  //     width: v-bind(size);
+  //     margin: 0 6px;
+
+  //     .d-progress__preload,
+  //     .d-progress__bar,
+  //     .d-progress__cursor {
+  //       bottom: 0;
+  //       top: auto;
+  //       width: 100%;
+  //     }
+
+  //     .d-progress__cursor {
+  //       height: 1px;
+  //     }
+
+  //     .d-progress__bar {
+  //       &::before {
+  //         top: -6px;
+  //         left: 50%;
+  //         width: 12px;
+  //         height: 12px;
+  //         transform: translateX(-50%) scale(1, 1);
+  //       }
+  //     }
+  //   }
+  // }
 }
 </style>

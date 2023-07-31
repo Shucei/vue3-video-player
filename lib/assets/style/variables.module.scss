@@ -9,16 +9,12 @@ $font-color:#409eff;
 $player-width: 800px;
 $player-height: 450px;
 
-// 控制条相关的变量值：
-$control-bar-height: 40px;
-
-// 播放按钮相关的变量值：
-$play-button-size: 50px;
-
+// 控制器相关的变量值：
+$control-bar-height: 45px;
 
 // 进度条相关的变量值：
-$progress-bar-height: 6px;
-$progress-bar-background-color: #ccc;
+$progress-bar-height-hover: 5px;
+$progress-bar-height: 3px;
 
 
 // 时间显示相关的变量值：
@@ -32,8 +28,7 @@ $time-display-color: #fff;
   playerWidth: $player-width;
   playerHeight: $player-height;
   controlBarHeight: $control-bar-height;
-  playButtonSize: $play-button-size;
+  progressBarHeighthover: $progress-bar-height-hover;
   progressBarHeight: $progress-bar-height;
-  progressBarBackgroundColor: $progress-bar-background-color;
   timeDisplayColor: $time-display-color;
 }

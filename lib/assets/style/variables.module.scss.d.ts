@@ -7,8 +7,8 @@ export interface IGlobalScss {
   controlBarHeight: string;
   playButtonSize: string;
   progressBarHeight: string;
-  progressBarBackgroundColor: string;
   timeDisplayColor: string;
+  progressBarHeighthover: string;
 }
 export const variables: IGlobalScss;
 export default variables;
