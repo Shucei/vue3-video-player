@@ -84,7 +84,7 @@
 
           <!-- 截图 -->
           <div class="tool-item pip-btn">
-            <SvgIcon icon="screenshot"></SvgIcon>
+            <SvgIcon icon="screenshot" class="screenshot"></SvgIcon>
             <div class="tool-item-main">截图</div>
           </div>
 

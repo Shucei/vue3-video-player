@@ -99,7 +99,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      top: 10px;
+      top: 4px;
       left: 0;
       bottom: 0;
       width: 100%;
@@ -110,24 +110,32 @@
         display: flex;
         height: 100%;
         align-items: center;
+        
         .tool-item {
           position: relative;
           cursor: pointer;
           text-align: center;
           padding: 0 8px;
+          height: 100%;
           display: flex;
           align-items: center;
-          font-size: 13px;
-          color: #fff;
+          font-size: 12px;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.8);
           .play {
             font-size: 26px;
           }
 
           .sound {
             font-size: 26px;
-            
           }
 
+          .rotateHover{
+            font-size: 20px;
+          }
+          .screenshot{
+            font-size: 16px;
+          }
           .tool-item-main {
             position: absolute;
             white-space: nowrap;
@@ -140,7 +148,11 @@
             background: rgba(0, 0, 0, 0.7);
             border-radius: 5px;
             transform: translateX(-50%);
-            
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            li{
+              font-weight: 600;
+            }
           }
 
           &:hover {
@@ -153,17 +165,17 @@
       }
 
       // 时间
-      .tool-time {
+      .tool-time span{
+        cursor: default;
         text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
         vertical-align: middle;
-        cursor: default;
-        cursor: none;
         color: rgba(255, 255, 255, 0.8);
+        font-weight: 600;
       }
+
 
       .speed-main {
         padding: 0 10px;
-
         li {
           cursor: pointer;
           line-height: 34px;
@@ -172,11 +184,11 @@
 
           &:hover {
             opacity: .8;
-           color: $font-color;
+            color: $font-color;
           }
 
           &.speed-active {
-            color: rgba(var(--primary-color), 1);
+            color: rgba($font-color, 1);
             font-weight: bold;
           }
         }
