@@ -162,6 +162,43 @@
           }
         }
 
+        // 声音
+        .volume-box{
+          width: 32px;
+          margin-left: -8px;
+          height: $progress-bar-height;
+          .progress-bar {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            transition: height 0.1s;
+            height: $progress-bar-height;
+            z-index: 1;
+        
+        
+            // pointer-events: none;  禁止鼠标事件
+            //对 d-slider内的组件样式修改
+            :deep(.d-progress__runway) {
+              transition: height 0.1s;
+              height: 100%;
+        
+              .d-progress__bar::before {
+                transform: translateY(-50%) scale(0, 0);
+              }
+            }
+          }
+        
+          &:hover {
+            .progress-bar {
+              :deep(.d-progress__bar::before) {
+                transform: translateY(-50%) scale(1, 1) !important;
+              }
+            }
+          }
+
+        }
+
       }
 
       // 时间
@@ -172,7 +209,6 @@
         color: rgba(255, 255, 255, 0.8);
         font-weight: 600;
       }
-
 
       .speed-main {
         padding: 0 10px;

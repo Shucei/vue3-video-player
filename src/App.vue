@@ -1,7 +1,8 @@
 <template>
-  <div style="text-align: center;width: 700px;">
+  <div style="text-align: center;width: 700px;margin: auto;">
     <videoPlay ref="video" v-bind="options" />
   </div>
+
 </template>
 
 <script setup lang="ts">
@@ -43,6 +44,6 @@ nextTick(() => {
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 
 </style>

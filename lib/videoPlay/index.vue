@@ -44,12 +44,21 @@
         <div class="tool-bar tool-barplayer-icons-left">
           <div class="tool-item">
             <!-- <icon size="24" :icon="`icon-${state.playBtnState}`"></icon> -->
-            <SvgIcon :icon="state.playBtnState" :className="{ 'play': true }"></SvgIcon>
+            <SvgIcon :icon="state.playBtnState" className="play"></SvgIcon>
           </div>
           <div class="tool-item tool-sound">
-            <SvgIcon icon="volume-off" :className="{ 'sound': true }"></SvgIcon>
+            <SvgIcon icon="volume-off" className="sound"></SvgIcon>
           </div>
-          <div class="tool-item tool-time audioTrack-btn" v-if="props.controlBtns.includes('audioTrack')">
+          <!-- 音量 -->
+          <div class="tool-item volume-box"  v-if="props.controlBtns.includes('volume')">
+              <!-- @change 如果修改音量则取消静音 -->
+              <ControlsProgress class="progress-bar" @change="state.muted = false" :hover="false" size="100%"
+                v-model="state.volume" isSound>
+              </ControlsProgress>
+          </div>
+
+          <!-- 时间 -->
+          <div class="tool-item tool-time" v-if="props.controlBtns.includes('audioTrack')">
             <span>{{ state.currentTime }}</span>
             <span style="margin: 0 3px">/</span>
             <span class="total-time">{{ state.totalTime }}</span>
@@ -108,12 +117,14 @@
               </ul>
             </div>
           </div>
+
           <!-- 画中画 -->
           <div class="tool-item pip-btn" v-if="props.controlBtns.includes('pip')">
             <!-- <d-icon size="20" icon="icon-pip"></d-icon> -->
             <SvgIcon icon="hzh"></SvgIcon>
             <div class="tool-item-main">画中画</div>
           </div>
+
           <!-- 网页全屏 -->
           <div class="tool-item pip-btn" v-if="props.controlBtns.includes('pageFullScreen')"
             @click="state.webFullScreen = !state.webFullScreen">
@@ -121,6 +132,7 @@
             <SvgIcon icon="fullscreen"></SvgIcon>
             <div class="tool-item-main">网页全屏</div>
           </div>
+
           <!-- 全屏 -->
           <div class="tool-item fullScreen-btn" v-if="props.controlBtns.includes('fullScreen')">
             <div class="tool-item-main">全屏</div>
@@ -130,6 +142,9 @@
       </div>
     </div>
   </div>
+
+
+
 </template>
 
 <script lang="ts" setup>
@@ -139,6 +154,7 @@ import PlaySwitch from "../components/PlaySwitch.vue";
 import { defineProps, reactive } from "vue";
 import { defaultProps } from "./defaultProps";
 import { isMobile } from "../utils/util";
+
 const props = defineProps(defaultProps);
 const state = reactive({
   dVideo: null,

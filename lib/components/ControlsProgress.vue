@@ -8,7 +8,7 @@
           props.hoverText
         }}</div>
       </div>
-      <div class="d-progress__preload" :style="preloadStyle"></div>
+      <div v-if="isSound" class="d-progress__preload" :style="preloadStyle"></div>
       <div class="d-progress__bar" :style="sliderBarStyle"></div>
     </div>
   </div>
@@ -40,7 +40,11 @@ const props = defineProps({
   size: {
     type: String,
     default: '6px',
-  }
+  },
+  isSound: {
+    type: Boolean,
+    default: true,
+  },
   // vertical: {
   //   type: Boolean,
   //   default: false,
@@ -55,19 +59,19 @@ const state = reactive({
 // 获取当前位置的高度或宽度
 const sliderBarStyle: any = computed(() => {
   let value = props.modelValue < 0 ? 0 : props.modelValue > 1 ? 1 : props.modelValue;
-  return props.vertical ? `height:${value * 100}%` : `width:${value * 100}%`
+  return `width:${value * 100}%`
 })
 
 
 // 预加载进度条样式
 const preloadStyle: any = computed(() => {
   let value = props.preload < 0 ? 0 : props.preload > 1 ? 1 : props.preload;
-  return props.vertical ? `height:${value * 100}%` : `width:${value * 100}%`
+  return `width:${value * 100}%`
 })
 // 预加载进度条样式
 const hoverStyle: any = computed(() => {
   let value = state.hoverPosition < 0 ? 0 : state.hoverPosition > 1 ? 1 : state.hoverPosition;
-  return props.vertical ? `bottom:${value * 100}%` : `left:${value * 100}%`
+  return `left:${value * 100}%`
 })
 // 阻止右键事件
 const contextmenuHandle = (ev: MouseEvent) => {
@@ -90,7 +94,7 @@ const mousemoveHandle = (ev: MouseEvent) => {
   let val = getPosition(ev)
   emits('onMousemove', ev, val)
   state.hoverPosition = val
-  if (props.vertical) return
+
   //获取dom
   let refProgressEl = (refProgress.value as HTMLButtonElement)
   // 提示宽的一半宽度
@@ -119,13 +123,13 @@ const getPosition = (ev: any) => {
   //获取dom
   let refProgressEl = (refProgress.value as HTMLButtonElement)
   let value = 0
-  if (props.vertical) {
-    // 垂直模式下获取高度
-    let clientHeight = refProgressEl.clientHeight
-    value = (refProgressEl.getBoundingClientRect().bottom - ev.clientY) / clientHeight
-  } else {
-    value = (ev.clientX - refProgressEl.getBoundingClientRect().left) / refProgressEl.clientWidth
-  }
+  // if (props.vertical) {
+  //   // 垂直模式下获取高度
+  //   let clientHeight = refProgressEl.clientHeight
+  //   value = (refProgressEl.getBoundingClientRect().bottom - ev.clientY) / clientHeight
+  // } else {
+  value = (ev.clientX - refProgressEl.getBoundingClientRect().left) / refProgressEl.clientWidth
+  // }
   return value < 0 ? 0 : value > 1 ? 1 : value;
 }
 // 拖拽中
@@ -216,7 +220,7 @@ const onDragEnd = (ev: Event) => {
         display: block;
         content: "";
         position: absolute;
-        right: -5px;
+        right: -4px;
         top: 50%;
         width: 6px;
         height: 6px;
