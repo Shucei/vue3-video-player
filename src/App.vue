@@ -12,7 +12,7 @@ import { videoPlay } from "../lib/index";
 const options = reactive({
   width: "800px", //播放器宽度
   height: "500px", //播放器高度
-  color: "#409eff", //主题色
+  theme: "#409eff", //主题色
   muted: false, //静音
   webFullScreen: false, //网页全屏
   autoPlay: false, //自动播放
@@ -23,6 +23,7 @@ const options = reactive({
   volume: 0.3, //默认音量大小
   control: true, //是否显示控制器
   title: "你好", //视频名称
+  hotkey: true, //是否支持热键
   type: "mp4",
   src: "https://api.dogecloud.com/player/get.mp4?vcode=5ac682e6f8231991&userId=17&ext=.mp4", //视频源
   poster: "https://dogefs.s3.ladydaily.com/~/source/wallhaven/small/we/we1lrq.jpg?w=400&h=200&fmt=webp", //封面
@@ -35,6 +36,7 @@ const options = reactive({
     "pip",
     "pageFullScreen",
     "fullScreen",
+    'screenshot'
   ],
 });
 const video = ref(null);

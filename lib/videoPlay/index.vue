@@ -1,7 +1,6 @@
 <template>
   <div class="player-wrap" :class="{
-    'player-wrap-hover':
-      state.playBtnState == 'play' || state.isVideoHovering,
+    'player-wrap-hover': state.playBtnState == 'play' || state.isVideoHovering,
     'is-lightsOff': state.lightsOff,
     'web-full-screen': state.webFullScreen,
   }">
@@ -19,7 +18,7 @@
         :playsinline="playsinline"：这是一个动态绑定的内联播放属性。根据 playsinline 的值，如果为真，则在支持内联播放的浏览器中内联播放视频，否则在全屏播放。
         x-webkit-airplay="allow"：这是一个非标准的属性，用于在 WebKit 浏览器中启用 AirPlay 功能，允许将视频播放到支持 AirPlay 的设备上。
        -->
-      <video class="player-video-main" :class="{ 'video-mirror': state.mirror }"
+      <video ref="videoRef" class="player-video-main" :class="{ 'video-mirror': state.mirror }"
         :controls="isMobile && state.speed ? true : false" :muted="state.muted" :volume="state.volume"
         :autoplay="autoPlay" :loop="state.loop" :src="src" :poster="poster" :webkit-playsinline="playsinline"
         :playsinline="playsinline" x-webkit-airplay="allow">
@@ -32,7 +31,6 @@
       <div class="player-lightsOff" v-show="state.lightsOff"></div>
     </transition>
 
-
     <!-- 控制器 -->
     <div class="player-controller">
       <div class="control-progress">
@@ -42,19 +40,18 @@
       <!-- 控制工具 -->
       <div class="control-tool">
         <div class="tool-bar tool-barplayer-icons-left">
-          <div class="tool-item">
-            <!-- <icon size="24" :icon="`icon-${state.playBtnState}`"></icon> -->
+          <div class="tool-item" @click="togglePlay">
             <SvgIcon :icon="state.playBtnState" className="play"></SvgIcon>
           </div>
           <div class="tool-item tool-sound">
             <SvgIcon icon="volume-off" className="sound"></SvgIcon>
           </div>
           <!-- 音量 -->
-          <div class="tool-item volume-box"  v-if="props.controlBtns.includes('volume')">
-              <!-- @change 如果修改音量则取消静音 -->
-              <ControlsProgress class="progress-bar" @change="state.muted = false" :hover="false" size="100%"
-                v-model="state.volume" isSound>
-              </ControlsProgress>
+          <div class="tool-item volume-box" v-if="props.controlBtns.includes('volume')">
+            <!-- @change 如果修改音量则取消静音 -->
+            <ControlsProgress class="progress-bar" @change="state.muted = false" :hover="false" size="100%"
+              v-model="state.volume" isSound>
+            </ControlsProgress>
           </div>
 
           <!-- 时间 -->
@@ -70,9 +67,11 @@
           <div class="tool-item quality-btn">
             720 高清
             <div class="tool-item-main">
-              <ul class="speed-main" style="text-align:center">
+              <ul class="speed-main" style="text-align: center">
                 <li :class="{ 'speed-active': state.currentLevel == index }" v-for="(row, index) of state.qualityLevels"
-                  :key="row">P</li>
+                  :key="row">
+                  P
+                </li>
                 <!-- <li @click="qualityLevelsHandle({}, -1)">自动</li> -->
               </ul>
             </div>
@@ -84,15 +83,15 @@
             <div class="tool-item-main">
               <ul class="speed-main">
                 <li :class="{ 'speed-active': state.speedActive == row }" v-for="row of state.speedRate"
-                  :key="row as string">{{
-                    row
-                  }}x</li>
+                  :key="row as string">
+                  {{ row }}x
+                </li>
               </ul>
             </div>
           </div>
 
           <!-- 截图 -->
-          <div class="tool-item pip-btn">
+          <div class="tool-item pip-btn" v-if="props.controlBtns.includes('screenshot')">
             <SvgIcon icon="screenshot" class="screenshot"></SvgIcon>
             <div class="tool-item-main">截图</div>
           </div>
@@ -142,30 +141,27 @@
       </div>
     </div>
   </div>
-
-
-
 </template>
 
 <script lang="ts" setup>
 import SvgIcon from "../components/SvgIcon.vue";
 import ControlsProgress from "../components/ControlsProgress.vue";
 import PlaySwitch from "../components/PlaySwitch.vue";
-import { defineProps, reactive } from "vue";
+import { defineProps, reactive, ref, onMounted } from "vue";
 import { defaultProps } from "./defaultProps";
 import { isMobile } from "../utils/util";
 
 const props = defineProps(defaultProps);
 const state = reactive({
-  dVideo: null,
+  VideoRef: null as HTMLVideoElement | null,
   ...props, //如果有自定义配置就会替换默认配置
   muted: props.muted,
   playBtnState: props.autoPlay ? "pause" : "play", // 播放按钮状态
-  loadStateType: "loadstart", // 加载状态类型 //loadstart初始化  waiting缓冲 ended播放结束
+  loadStateType: "loadstart", // 加载状态
   fullScreen: false,
   handleType: "", //当前操作类型
-  currentTime: "00:00:00",//当前播放时间
-  preloadBar: 0,// 当前缓冲进度
+  currentTime: "00:00:00", //当前播放时间
+  preloadBar: 0, // 当前缓冲进度
   totalTime: "00:00:00", //总时长
   isVideoHovering: true, //鼠标是否在视频上
   speedActive: "1.0", //倍速
@@ -176,6 +172,66 @@ const state = reactive({
   qualityLevels: [], //分辨率数组
   currentLevel: 0, //首选分辨率
 });
+
+// 播放器实例
+const videoRef = ref<HTMLVideoElement>();
+
+/**
+ * 播放暂停切换
+ */
+const togglePlay = (ev) => {
+  if (ev) ev.preventDefault();
+  if (state.playBtnState === "play" || state.playBtnState === "replay") {
+    // 点击播放按钮 或 重新播放按钮 后
+    playVideo();
+  } else if (state.playBtnState == "pause") {
+    // 点击暂停按钮后
+    pauseVideo();
+  }
+};
+
+
+/**
+ * 播放
+ */
+const playVideo = () => {
+  state.loadStateType = "play";
+  state.VideoRef?.play().catch(() => {
+    setTimeout(() => {
+      state.playBtnState = "replay";
+      state.loadStateType = "error";
+    }, 500);
+  });
+  state.playBtnState = "pause";
+};
+
+/**
+ * 暂停
+ */
+const pauseVideo = () => {
+  state.VideoRef?.pause();
+  state.playBtnState = "play"; // 暂停后要显示播放按钮
+};
+
+/**
+ * 聚焦到播放器
+ */
+// const inputFocusHandle = () => {
+//   if (isMobile) return;
+//   videoRef.value?.focus();
+// };
+
+onMounted(() => {
+  // 播放器实例
+  if (!videoRef.value) {
+    console.error("videoRef is null");
+    return;
+  }
+  state.VideoRef = videoRef.value;
+  // 聚焦到播放器
+  // inputFocusHandle();
+})
+
 </script>
 
 <script lang="ts">
@@ -192,6 +248,6 @@ export default {
   // 通过v-bind绑定props中的width和height
   width: v-bind(width);
   height: v-bind(height);
-  $font-color: v-bind(color);
+  $font-color: v-bind(theme);
 }
 </style>

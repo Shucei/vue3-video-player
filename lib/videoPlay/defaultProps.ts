@@ -19,7 +19,7 @@ export const videoEmits = [
 export const defaultProps = {
   width: { type: String, default: "800px" },
   height: { type: String, default: "450px" },
-  color: { type: String, default: "#409eff" },
+  theme: { type: String, default: "#409eff" },
   src: { required: true, type: String, default: "" }, //视频源
   title: { type: String, default: "" }, //视频名称
   type: { type: String, default: "video/mp4" }, //视频类型
@@ -47,6 +47,7 @@ export const defaultProps = {
       "pip",
       "pageFullScreen",
       "fullScreen",
+      "screenshot"
     ],
   }, //是否显示控制器
   preload: { type: String, default: "auto" }, //预加载
