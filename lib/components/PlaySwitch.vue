@@ -6,7 +6,7 @@
     </div>
 </template>
 
-<script setup lang="ts" >
+<script setup lang="ts">
 import { computed, ref, nextTick, defineProps, defineEmits } from 'vue'
 const props = defineProps({
     modelValue: {  //绑定值，必须等于active-value或inactive-value，默认为Boolean类型

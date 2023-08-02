@@ -27,7 +27,7 @@ const refTips: Ref<Nullable<HTMLElement>> = ref(null)
 const props = defineProps({
   modelValue: {
     required: true,
-    type: Number,
+    type: [Number, String],
     default: 0,
   },
   disabled: {
