@@ -8,7 +8,7 @@ export const on = function (
     element.addEventListener(event, handler, useCapture);
   }
 };
-/* istanbul ignore next */
+
 export const off = function (
   element: Element | HTMLElement | Document | Window,
   event: string,

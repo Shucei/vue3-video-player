@@ -1,16 +1,16 @@
-
 <template>
   <!-- :class="{ 'is-vertical': props.vertical }" -->
   <div ref="refProgress" class="d-progress" @mousedown.stop="mouseDownHandle" @contextmenu="contextmenuHandle">
     <div class="d-progress__runway" @mousemove="mousemoveHandle">
-      <div class="d-progress__cursor" :style="hoverStyle" v-show="props.hover">
+      <div class="d-progress__cursor" v-if="!isSound" :style="hoverStyle" v-show="props.hover">
         <div class="d-progress__tips" ref="refTips" :style="{ left: state.hoverTipsLeft }" v-show="props.hoverText">{{
           props.hoverText
         }}</div>
       </div>
-      <div v-if="isSound" class="d-progress__preload" :style="preloadStyle"></div>
+      <div v-if="!isSound" class="d-progress__preload" :style="preloadStyle"></div>
       <div class="d-progress__bar" :style="sliderBarStyle"></div>
     </div>
+
   </div>
 </template>
 <script lang="ts">
@@ -19,75 +19,78 @@ export default {
 }
 </script>
 <script setup lang="ts">
-import { reactive, ref, Ref, computed, defineProps, defineEmits } from 'vue'
+import { reactive, ref, computed, defineProps, defineEmits } from 'vue'
 import { on, off } from '../utils/dom'
+
 type Nullable<T> = null | T
-const refProgress: Ref<Nullable<HTMLElement>> = ref(null)
-const refTips: Ref<Nullable<HTMLElement>> = ref(null)
+const refProgress = ref<Nullable<HTMLElement>>(null)
+const refTips = ref<Nullable<HTMLElement>>(null)
+// 定义Props和Emits
 const props = defineProps({
   modelValue: {
     required: true,
-    type: [Number, String],
+    type: [Number],
     default: 0,
   },
   disabled: {
     type: Boolean,
     default: false,
   },
-  hover: { type: Boolean, default: true }, // 鼠标hover位置
-  hoverText: { type: String, default: '' },// hover提示文字
-  preload: { type: Number, default: 0 }, // 预加载load
+  hover: { type: Boolean, default: true },
+  hoverText: { type: String, default: '' },
+  preload: { type: Number, default: 0 },
   size: {
     type: String,
     default: '6px',
   },
   isSound: {
     type: Boolean,
-    default: true,
+    default: false,
   },
-  // vertical: {
-  //   type: Boolean,
-  //   default: false,
-  // },
 })
+
 const emits = defineEmits(['update:modelValue', 'change', 'onMousemove'])
+
+// 响应式数据
 const state = reactive({
-  dragging: false, //拖拽状态
-  hoverPosition: 0, //鼠标位置
-  hoverTipsLeft: '50%', //提示偏移位置
+  dragging: false, 
+  hoverPosition: 0,
+  hoverTipsLeft: '50%',
 })
-// 获取当前位置的高度或宽度
-const sliderBarStyle: any = computed(() => {
+
+// 计算属性
+const sliderBarStyle = computed(() => {
   let value = props.modelValue < 0 ? 0 : props.modelValue > 1 ? 1 : props.modelValue;
   return `width:${value * 100}%`
 })
 
-
-// 预加载进度条样式
-const preloadStyle: any = computed(() => {
+const preloadStyle = computed(() => {
   let value = props.preload < 0 ? 0 : props.preload > 1 ? 1 : props.preload;
   return `width:${value * 100}%`
 })
-// 预加载进度条样式
-const hoverStyle: any = computed(() => {
+
+const hoverStyle = computed(() => {
   let value = state.hoverPosition < 0 ? 0 : state.hoverPosition > 1 ? 1 : state.hoverPosition;
   return `left:${value * 100}%`
 })
+
 // 阻止右键事件
 const contextmenuHandle = (ev: MouseEvent) => {
   ev.preventDefault()
 }
+
 // 按下事件
 const mouseDownHandle = (ev: MouseEvent) => {
-  if (props.disabled) return
+  if (props.disabled) return // 禁用
   ev.preventDefault()
   state.dragging = true
-  setPosition(ev) //设置当前位置
+  setPosition(ev)
   on(window, 'mousemove', onDragging)
   on(window, 'touchmove', onDragging)
   on(window, 'mouseup', onDragEnd)
   on(window, 'touchend', onDragEnd)
 }
+
 // 鼠标移动事件
 const mousemoveHandle = (ev: MouseEvent) => {
   if (!props.hover) return
@@ -95,47 +98,38 @@ const mousemoveHandle = (ev: MouseEvent) => {
   emits('onMousemove', ev, val)
   state.hoverPosition = val
 
-  //获取dom
-  let refProgressEl = (refProgress.value as HTMLButtonElement)
-  // 提示宽的一半宽度
-  let refTipsWidth = (refTips.value as HTMLButtonElement).clientWidth / 2
-  let movePositon = ev.clientX - refProgressEl.getBoundingClientRect().left
-  // 如果当前往左的偏移量大于提示框宽度
+  let refProgressEl = refProgress.value as HTMLElement
+  let refTipsWidth = refTips.value?.clientWidth ? refTips.value?.clientWidth / 2 || 0 : 0 
+  let movePositon = ev.clientX - refProgressEl.getBoundingClientRect().left 
+  // 鼠标移动到两端时，提示框不超出进度条
   if (movePositon < refTipsWidth) {
     state.hoverTipsLeft = (refTipsWidth - movePositon) + 'px'
   } else if ((refProgressEl.clientWidth - movePositon) < refTipsWidth) {
-    // 如果当前往右的偏移量大于提示框宽度  （总宽度-当前移动位置）< tips一半的宽度
     state.hoverTipsLeft = (refProgressEl.clientWidth - movePositon) - refTipsWidth + 'px'
   } else {
     state.hoverTipsLeft = '50%'
   }
 }
 
-
 // 设置位置
-const setPosition = (ev: any) => {
+const setPosition = (ev: MouseEvent) => {
   let value = getPosition(ev)
-  emits("update:modelValue", value);
+  emits('update:modelValue', value)
   emits('change', ev, value)
 }
+
 // 获取当前事件位置
-const getPosition = (ev: any) => {
-  //获取dom
-  let refProgressEl = (refProgress.value as HTMLButtonElement)
-  let value = 0
-  // if (props.vertical) {
-  //   // 垂直模式下获取高度
-  //   let clientHeight = refProgressEl.clientHeight
-  //   value = (refProgressEl.getBoundingClientRect().bottom - ev.clientY) / clientHeight
-  // } else {
-  value = (ev.clientX - refProgressEl.getBoundingClientRect().left) / refProgressEl.clientWidth
-  // }
+const getPosition = (ev: MouseEvent) => {
+  let refProgressEl = refProgress.value as HTMLElement
+  let value = (ev.clientX - refProgressEl.getBoundingClientRect().left) / refProgressEl.clientWidth
   return value < 0 ? 0 : value > 1 ? 1 : value;
 }
+
 // 拖拽中
-const onDragging = (ev: Event) => {
-  setPosition(ev) //获取当前按下位置
+const onDragging = (ev) => {
+  setPosition(ev)
 }
+
 // 拖拽结束
 const onDragEnd = (ev: Event) => {
   if (state.dragging) {
@@ -149,7 +143,6 @@ const onDragEnd = (ev: Event) => {
     }, 0);
   }
 }
-
 </script>
 
 <style lang='scss' scoped>
@@ -172,6 +165,7 @@ const onDragEnd = (ev: Event) => {
       top: 0;
       left: 0;
       height: 100%;
+
     }
 
     .d-progress__cursor {
@@ -182,7 +176,7 @@ const onDragEnd = (ev: Event) => {
       pointer-events: none;
 
       .d-progress__tips {
-        pointer-events: none;
+        pointer-events: none; 
         color: #fff;
         position: absolute;
         white-space: nowrap;
@@ -193,6 +187,7 @@ const onDragEnd = (ev: Event) => {
         box-sizing: border-box;
         display: block;
         font-size: 12px;
+        font-weight: 500;
         background: rgba(0, 0, 0, 0.6);
         border-radius: 3px;
         transform: translateX(-50%);

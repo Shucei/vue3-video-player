@@ -35,7 +35,8 @@
     <div class="player-controller">
       <div class="control-progress">
         <ControlsProgress class="progress-bar" :disabled="!state.speed" :hoverText="state.progressCursorTime"
-          :size="'100%'" v-model="state.playProgress" :preload="state.preloadBar"></ControlsProgress>
+          @change="progressChange" @onMousemove="onProgressMove" :size="'100%'" v-model="state.playProgress"
+          :preload="state.preloadBar"></ControlsProgress>
       </div>
       <!-- 控制工具 -->
       <div class="control-tool">
@@ -46,14 +47,19 @@
           </div>
 
           <!-- 音量 -->
-          <div class="tool-item tool-sound">
-            <SvgIcon icon="volume-off" className="sound"></SvgIcon>
+          <div class="tool-item tool-sound" @click="mutedPlay">
+            <SvgIcon :icon="state.volume == 0 || state.muted
+              ? 'volume-off'
+              : state.volume > 0.5
+                ? 'volume-up'
+                : 'volume-down'" className="sound"></SvgIcon>
           </div>
           <div class="tool-item volume-box" v-if="props.controlBtns.includes('volume')">
-            <!-- @change 如果修改音量则取消静音 -->
-            <ControlsProgress class="progress-bar" @change="state.muted = false" :hover="false" size="100%"
-              v-model="state.volume" isSound>
-            </ControlsProgress>
+            <div :class="{ 'is-muted': state.muted }">
+              <ControlsProgress class="progress-bar" @change="state.muted = false" :hover="false" size="100%"
+                v-model="state.volume" :isSound="true">
+              </ControlsProgress>
+            </div>
           </div>
 
           <!-- 时间 -->
@@ -143,6 +149,7 @@
       </div>
     </div>
   </div>
+  <!-- <ProgressTest :currentTime="currentTime" :duration="state.totalTime"></ProgressTest> -->
 </template>
 
 <script lang="ts" setup>
@@ -151,12 +158,11 @@ import ControlsProgress from "../components/ControlsProgress.vue";
 import PlaySwitch from "../components/PlaySwitch.vue";
 import { defineProps, reactive, ref, onMounted, watch, nextTick, onBeforeUnmount } from "vue";
 import { defaultProps } from "./defaultProps";
-import { isMobile } from "../utils/util";
+import { isMobile, timeFormat } from "../utils/util";
 import Hlsjs from "hls.js";
 
 const props = defineProps(defaultProps);
 const state = reactive({
-  VideoRef: null as HTMLMediaElement | null,
   ...props, //如果有自定义配置就会替换默认配置
   muted: props.muted,
   playBtnState: props.autoPlay ? "pause" : "play", // 播放按钮状态
@@ -177,7 +183,8 @@ const state = reactive({
 });
 
 // 播放器实例
-const videoRef = ref<HTMLMediaElement>();
+const videoRef = ref<HTMLVideoElement>();
+
 
 /**
  * 播放暂停切换
@@ -191,6 +198,7 @@ const togglePlay = (ev) => {
     // 点击暂停按钮后
     pauseVideo();
   }
+
 };
 
 /**
@@ -198,7 +206,7 @@ const togglePlay = (ev) => {
  */
 const playVideo = () => {
   state.loadStateType = "play";
-  state.VideoRef?.play().catch(() => {
+  videoRef.value?.play().catch(() => {
     setTimeout(() => {
       state.playBtnState = "replay";
       state.loadStateType = "error";
@@ -211,9 +219,45 @@ const playVideo = () => {
  * 暂停
  */
 const pauseVideo = () => {
-  state.VideoRef?.pause();
+  videoRef.value?.pause();
   state.playBtnState = "play"; // 暂停后要显示播放按钮
 };
+
+/**
+ * 静音切换
+ */
+const mutedPlay = () => {
+  state.muted = !state.muted;
+  // 如果之前音量调整为0 取消静音时会把音量设置为5
+  if (state.volume === 0) {
+    state.volume = 0.05;
+  }
+};
+
+/**
+ * 进度条移动设置提示框时间
+ */
+const onProgressMove = (ev, val) => {
+  if (videoRef.value) {
+    state.progressCursorTime = timeFormat(videoRef.value.duration * val);
+  }
+};
+
+/**
+ * 进度条改变
+ */
+const progressChange = (ev: Event, val) => {
+  if (videoRef.value) {
+    let duration = videoRef.value.duration // 媒体总长
+    videoRef.value.currentTime = duration * val;
+    if (state.playBtnState == "play") {
+      videoRef.value.play();
+      state.playBtnState = "pause";
+    }
+  }
+};
+
+
 
 /**
  * 聚焦到播放器
@@ -222,12 +266,12 @@ const pauseVideo = () => {
 //   if (isMobile) return;
 //   videoRef.value?.focus();
 // };
-let hls = null
+let hls
 const init = (): void => {
   if (
-    state.VideoRef?.canPlayType(props.type) ||
-    state.VideoRef?.canPlayType("application/vnd.apple.mpegurl") ||
-    state.VideoRef?.canPlayType("application/x-mpegURL")
+    videoRef.value?.canPlayType(props.type) ||
+    videoRef.value?.canPlayType("application/vnd.apple.mpegurl") ||
+    videoRef.value?.canPlayType("application/x-mpegURL")
   ) {
     state.muted = props.autoPlay;
   }
@@ -248,11 +292,11 @@ const init = (): void => {
     hls = new Hlsjs({ fragLoadingTimeOut: 2000 });
     hls.detachMedia(); //解除绑定
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    hls.attachMedia(state.VideoRef!);
-    // 当媒体元素与Hls实例绑定时触发
+    hls.attachMedia(videoRef.value!);
+    // 当媒体元素与Hls实例绑定时触发mediaAttached事件
     hls.on(Hlsjs.Events.MEDIA_ATTACHED, (ev, data) => {
       hls.loadSource(props.src);
-      // 成功解析HLS清单文件后触发
+      // 成功解析HLS清单文件后触发manifestParsed事件
       hls.on(Hlsjs.Events.MANIFEST_PARSED, (ev, data) => {
         console.log(data);
         state.currentLevel = data.firstLevel;
@@ -288,8 +332,8 @@ const init = (): void => {
       console.error(`HLS.js错误: ${errorType}`);
       console.error(`错误详情: ${errorDetails}`);
       if (errorFatal) {
-        // 如果错误是致命的，显示错误提示给用户
         // displayError('发生了一个错误，请稍后重试。');
+        // state.VideoRef?.load();
       }
     });
   }
@@ -304,12 +348,10 @@ onBeforeUnmount(() => {
 watch(
   () => props.src,
   (newVal, oldVal) => {
-    if (newVal !== oldVal) {
-      nextTick(() => {
-        // 初始化
-        init()
-      })
-    }
+    nextTick(() => {
+      // 初始化
+      init()
+    })
   }, { immediate: true }
 );
 
@@ -319,7 +361,6 @@ onMounted(() => {
     console.error("videoRef is null");
     return;
   }
-  state.VideoRef = videoRef.value;
   // 聚焦到播放器
   // inputFocusHandle();
 });

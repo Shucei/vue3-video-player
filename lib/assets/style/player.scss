@@ -105,12 +105,12 @@
       width: 100%;
       box-sizing: border-box;
 
-      
+
       .tool-bar {
         display: flex;
         height: 100%;
         align-items: center;
-        
+
         .tool-item {
           position: relative;
           cursor: pointer;
@@ -122,6 +122,7 @@
           font-size: 12px;
           font-weight: 600;
           color: rgba(255, 255, 255, 0.8);
+
           .play {
             font-size: 26px;
           }
@@ -130,12 +131,14 @@
             font-size: 26px;
           }
 
-          .rotateHover{
+          .rotateHover {
             font-size: 20px;
           }
-          .screenshot{
+
+          .screenshot {
             font-size: 16px;
           }
+
           .tool-item-main {
             position: absolute;
             white-space: nowrap;
@@ -150,7 +153,8 @@
             transform: translateX(-50%);
             font-weight: 600;
             color: rgba(255, 255, 255, 0.8);
-            li{
+
+            li {
               font-weight: 600;
             }
           }
@@ -162,11 +166,31 @@
           }
         }
 
+        // 音量图标
+        .tool-sound{
+          
+          &:hover{
+            :deep(.d-progress__runway) {
+              width: 0 !important;
+              height: 0 !important;
+              .d-progress__bar {
+                width: 0 !important;
+                height: 0 !important;
+              }
+              .d-progress__bar::before {
+                width: 0 !important;
+                height: 0 !important;
+              }
+            }
+          }
+        }
+
         // 声音
-        .volume-box{
+        .volume-box {
           width: 32px;
-          margin-left: -8px;
+          margin-left: -4px;
           height: $progress-bar-height;
+
           .progress-bar {
             position: absolute;
             left: 0;
@@ -175,20 +199,22 @@
             transition: height 0.1s;
             height: $progress-bar-height;
             z-index: 1;
-        
-        
+
+
             // pointer-events: none;  禁止鼠标事件
             //对 d-slider内的组件样式修改
             :deep(.d-progress__runway) {
               transition: height 0.1s;
               height: 100%;
-        
+
               .d-progress__bar::before {
                 transform: translateY(-50%) scale(0, 0);
               }
             }
+
+
           }
-        
+
           &:hover {
             .progress-bar {
               :deep(.d-progress__bar::before) {
@@ -199,10 +225,18 @@
 
         }
 
+        // 音量进度控制
+        .is-muted {
+          :deep(.d-progress__runway) {
+            .d-progress__bar {
+              width: 0 !important;
+            }
+          }
+        }
       }
 
       // 时间
-      .tool-time span{
+      .tool-time span {
         cursor: default;
         text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
         vertical-align: middle;
@@ -212,6 +246,7 @@
 
       .speed-main {
         padding: 0 10px;
+
         li {
           cursor: pointer;
           line-height: 34px;
@@ -230,6 +265,8 @@
         }
       }
     }
+
+
   }
 
   // 控制器显示
@@ -288,7 +325,7 @@
   z-index: 999998;
 }
 
-.dplayer-icons-right svg{
+.dplayer-icons-right svg {
   font-size: 19px;
 }
 
@@ -323,7 +360,7 @@
 //       margin: 0;
 //       padding: 0;
 //       transform: translate(0, 0);
-      
+
 //   }
 
 //   &.dplayer-no-danmaku {

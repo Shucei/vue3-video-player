@@ -14,7 +14,7 @@ const options = reactive({
   theme: "#409eff", //主题色
   muted: false, //静音
   webFullScreen: false, //网页全屏
-  autoPlay: true, //自动播放
+  autoPlay: false, //自动播放
   currentTime: 0, //当前播放时间
   loop: false, //循环播放
   mirror: false, //镜像画面
