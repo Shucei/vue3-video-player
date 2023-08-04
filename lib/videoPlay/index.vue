@@ -82,7 +82,7 @@
               <ul class="speed-main" style="text-align: center">
                 <li :class="{ 'speed-active': state.currentLevel == index }" v-for="(row, index) of state.qualityLevels"
                   :key="row">
-                  {{ row.name }}
+                  {{ row.name }} 
                 </li>
                 <!-- <li @click="qualityLevelsHandle({}, -1)">自动</li> -->
               </ul>
@@ -159,7 +159,7 @@
 import SvgIcon from "../components/SvgIcon.vue";
 import ControlsProgress from "../components/ControlsProgress.vue";
 import PlaySwitch from "../components/PlaySwitch.vue";
-import { defineProps, reactive, ref, onMounted, watch, nextTick, onBeforeUnmount } from "vue";
+import {defineExpose, defineProps, reactive, ref, onMounted, watch, nextTick, onBeforeUnmount } from "vue";
 import { debounce } from "throttle-debounce";
 import { defaultProps } from "./defaultProps";
 import { isMobile, timeFormat,requestPictureInPicture,toggleFullScreen } from "../utils/util";
@@ -280,11 +280,12 @@ const mouseMovewWarp = () => {
  * 画中画
  */
  const requestPictureInPicturePlay = () => {
-  videoRef.value.addEventListener('play', handlePlay); // 监听播放事件
-  videoRef.value.addEventListener('pause', handlePause); // 监听暂停事件
-  videoRef.value.addEventListener('leavepictureinpicture', handleLeavePiP); // 监听退出画中画事件
+  if(videoRef.value){
+    videoRef.value.addEventListener('play', handlePlay); // 监听播放事件
+    videoRef.value.addEventListener('pause', handlePause); // 监听暂停事件
+    videoRef.value.addEventListener('leavepictureinpicture', handleLeavePiP); // 监听退出画中画事件
+  }
   requestPictureInPicture(videoRef.value as HTMLVideoElement);
-
 };
 const handlePlay = () => {
   if (document.pictureInPictureElement) {
@@ -411,6 +412,12 @@ onMounted(() => {
   }
   // 聚焦到播放器
   // inputFocusHandle();
+});
+
+defineExpose({
+  play: playVideo, //播放
+  pause: pauseVideo, //暂停
+  togglePlay, //暂停或播放
 });
 </script>
 

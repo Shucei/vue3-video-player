@@ -53,7 +53,6 @@
     transform: translateY(45px);
     padding: 0 15px;
     box-sizing: border-box;
-
     .control-progress {
       width: 100%;
       position: relative;
@@ -68,18 +67,6 @@
         transition: height 0.1s;
         height: $progress-bar-height;
         z-index: 1;
-
-
-        // pointer-events: none;  禁止鼠标事件
-        //对 d-slider内的组件样式修改
-        :deep(.d-progress__runway) {
-          transition: height 0.1s;
-          height: 100%;
-
-          .d-progress__bar::before {
-            transform: translateY(-50%) scale(0, 0);
-          }
-        }
       }
 
       &:hover {
@@ -199,20 +186,6 @@
             transition: height 0.1s;
             height: $progress-bar-height;
             z-index: 1;
-
-
-            // pointer-events: none;  禁止鼠标事件
-            //对 d-slider内的组件样式修改
-            :deep(.d-progress__runway) {
-              transition: height 0.1s;
-              height: 100%;
-
-              .d-progress__bar::before {
-                transform: translateY(-50%) scale(0, 0);
-              }
-            }
-
-
           }
 
           &:hover {
@@ -266,7 +239,12 @@
       }
     }
 
-
+    // 移动到控制器上显示，解决点击播放暂停按钮时，控制器消失的问题
+    &:hover{
+      transform: translateY(0px);
+    }
+  
+  
   }
 
   // 控制器显示

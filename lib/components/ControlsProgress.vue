@@ -151,7 +151,8 @@ const onDragEnd = (ev: Event) => {
 
   .d-progress__runway {
     width: v-bind(size);
-    // height: v-bind(size);
+    transition: height 0.1s;
+    height: 100%;
     background: rgba(255, 255, 255, 0.4);
     position: relative;
     cursor: pointer;
@@ -220,7 +221,7 @@ const onDragEnd = (ev: Event) => {
         width: 6px;
         height: 6px;
         transition: 0.2s;
-        // transform: translateY(-50%) scale(1, 1);
+        transform: translateY(-50%) scale(0, 0);
         border-radius: 50%;
         background: #fff;
         box-shadow: 0 0 0 3px #409eff;
