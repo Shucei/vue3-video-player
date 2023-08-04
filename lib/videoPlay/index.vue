@@ -1,6 +1,8 @@
 <template>
   <div class="player-wrap"
+  ref="refPlayerWrap"
   @mousemove="mouseMovewWarp"
+  @mouseleave="state.isVideoHovering = false"
   :class="{
     'player-wrap-hover': state.playBtnState === 'play' || state.isVideoHovering,
     'is-lightsOff': state.lightsOff,
@@ -128,7 +130,7 @@
           </div>
 
           <!-- 画中画 -->
-          <div class="tool-item pip-btn" v-if="props.controlBtns.includes('pip')">
+          <div class="tool-item pip-btn" @click="requestPictureInPicturePlay" v-if="props.controlBtns.includes('pip')">
             <!-- <d-icon size="20" icon="icon-pip"></d-icon> -->
             <SvgIcon icon="hzh"></SvgIcon>
             <div class="tool-item-main">画中画</div>
@@ -143,7 +145,7 @@
           </div>
 
           <!-- 全屏 -->
-          <div class="tool-item fullScreen-btn" v-if="props.controlBtns.includes('fullScreen')">
+          <div class="tool-item fullScreen-btn" @click="toggleFullScreenPlay" v-if="props.controlBtns.includes('fullScreen')">
             <div class="tool-item-main">全屏</div>
             <SvgIcon icon="Bfullscreen"></SvgIcon>
           </div>
@@ -160,7 +162,7 @@ import PlaySwitch from "../components/PlaySwitch.vue";
 import { defineProps, reactive, ref, onMounted, watch, nextTick, onBeforeUnmount } from "vue";
 import { debounce } from "throttle-debounce";
 import { defaultProps } from "./defaultProps";
-import { isMobile, timeFormat } from "../utils/util";
+import { isMobile, timeFormat,requestPictureInPicture,toggleFullScreen } from "../utils/util";
 import Hlsjs from "hls.js";
 
 const props = defineProps(defaultProps);
@@ -186,7 +188,8 @@ const state = reactive({
 
 // 播放器实例
 const videoRef = ref<HTMLVideoElement>();
-
+// 全屏实例
+const refPlayerWrap = ref<HTMLElement>();
 
 /**
  * 播放暂停切换
@@ -262,16 +265,48 @@ const progressChange = (ev: Event, val:number) => {
 /**
  * 控制器显示隐藏控制
  */
-const hideControl = debounce(2000, () => {
+const hideControl = debounce(1000, () => {
   state.isVideoHovering = false;
+  if(videoRef.value) videoRef.value.style.cursor = "none";
+  
 });
-
-const mouseMovewWarp = (ev:Event) => {
+const mouseMovewWarp = () => {
+  if(videoRef.value) videoRef.value.style.cursor = "auto";
   state.isVideoHovering = true;
   hideControl();
 };
 
+/**
+ * 画中画
+ */
+ const requestPictureInPicturePlay = () => {
+  videoRef.value.addEventListener('play', handlePlay); // 监听播放事件
+  videoRef.value.addEventListener('pause', handlePause); // 监听暂停事件
+  videoRef.value.addEventListener('leavepictureinpicture', handleLeavePiP); // 监听退出画中画事件
+  requestPictureInPicture(videoRef.value as HTMLVideoElement);
 
+};
+const handlePlay = () => {
+  if (document.pictureInPictureElement) {
+    state.playBtnState = "pause"
+  }
+};
+const handlePause = () => {
+  if (document.pictureInPictureElement) {
+    state.playBtnState = "play"
+  }
+};
+const handleLeavePiP = () => {
+  videoRef.value?.removeEventListener('play', handlePlay);
+  videoRef.value?.removeEventListener('pause', handlePause);
+  videoRef.value?.removeEventListener('leavepictureinpicture', handleLeavePiP);
+};
+/**
+ * 全屏
+ */
+const toggleFullScreenPlay = () => {
+  state.fullScreen = toggleFullScreen(refPlayerWrap.value);
+};
 /**
  * 聚焦到播放器
  */

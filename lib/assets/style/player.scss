@@ -104,7 +104,7 @@
       bottom: 0;
       width: 100%;
       box-sizing: border-box;
-
+      
 
       .tool-bar {
         display: flex;
@@ -272,7 +272,7 @@
   // 控制器显示
   &.player-wrap-hover {
     .player-controller {
-      transform: translateY(0px) ;
+      transform: translateY(0px);
     }
   }
 }
