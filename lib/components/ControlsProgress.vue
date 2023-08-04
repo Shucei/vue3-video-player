@@ -53,7 +53,7 @@ const emits = defineEmits(['update:modelValue', 'change', 'onMousemove'])
 
 // 响应式数据
 const state = reactive({
-  dragging: false, 
+  dragging: false,
   hoverPosition: 0,
   hoverTipsLeft: '50%',
 })
@@ -99,8 +99,8 @@ const mousemoveHandle = (ev: MouseEvent) => {
   state.hoverPosition = val
 
   let refProgressEl = refProgress.value as HTMLElement
-  let refTipsWidth = refTips.value?.clientWidth ? refTips.value?.clientWidth / 2 || 0 : 0 
-  let movePositon = ev.clientX - refProgressEl.getBoundingClientRect().left 
+  let refTipsWidth = refTips.value?.clientWidth ? refTips.value?.clientWidth / 2 || 0 : 0
+  let movePositon = ev.clientX - refProgressEl.getBoundingClientRect().left
   // 鼠标移动到两端时，提示框不超出进度条
   if (movePositon < refTipsWidth) {
     state.hoverTipsLeft = (refTipsWidth - movePositon) + 'px'
@@ -176,7 +176,7 @@ const onDragEnd = (ev: Event) => {
       pointer-events: none;
 
       .d-progress__tips {
-        pointer-events: none; 
+        pointer-events: none;
         color: #fff;
         position: absolute;
         white-space: nowrap;

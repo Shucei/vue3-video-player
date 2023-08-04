@@ -3,32 +3,36 @@
     <div class="progress-bar__track" ref="track" @click="seek">
       <div class="progress-bar__progress" :style="{ width: progress + '%' }"></div>
       <div class="progress-bar__handle" :style="{ left: handlePosition + '%' }" @mousedown="startDrag"></div>
+      <div class="progress-bar__preview" v-show="showPreview">
+        <img :src="capturedImage" alt="Video Preview" />
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+
 export default {
   props: {
     currentTime: Number, // 当前播放时间
     duration: Number, // 视频总时长
   },
-  data() {
+  data () {
     return {
       isDragging: false,
       progress: 0,
     };
   },
   computed: {
-    handlePosition() {
+    handlePosition () {
       return (this.currentTime / this.duration) * 100;
     },
   },
   methods: {
-    startDrag() {
+    startDrag () {
       this.isDragging = true;
     },
-    dragging(event) {
+    dragging (event) {
       if (this.isDragging) {
         const trackWidth = this.$refs.track.clientWidth; // 进度条总长度
         const clickPosition = event.clientX - this.$refs.track.getBoundingClientRect().left; // 鼠标点击位置距离进度条左侧的距离
@@ -36,7 +40,7 @@ export default {
         this.progress = Math.max(0, Math.min(newProgress, 100));
       }
     },
-    endDrag() {
+    endDrag () {
       if (this.isDragging) {
         this.isDragging = false;
         // 触发视频跳转到新的进度位置
@@ -44,7 +48,7 @@ export default {
         this.$emit('seek', newTime);
       }
     },
-    seek(event) {
+    seek (event) {
       const trackWidth = this.$refs.track.clientWidth; // 进度条总长度
       const clickPosition = event.clientX - this.$refs.track.getBoundingClientRect().left;
       const newProgress = (clickPosition / trackWidth) * 100;
@@ -67,18 +71,21 @@ export default {
   background-color: #ddd;
   border-radius: 5px;
   cursor: pointer;
-  
+
 }
+
 .progress-bar__track {
   position: relative;
   height: 100%;
   border-radius: 5px;
 }
+
 .progress-bar__progress {
   height: 100%;
   background-color: #007bff;
   border-radius: 5px;
 }
+
 .progress-bar__handle {
   position: absolute;
   top: -5px;
@@ -88,5 +95,16 @@ export default {
   background-color: #007bff;
   border-radius: 50%;
   cursor: pointer;
+}
+
+.progress-bar__preview {
+  position: absolute;
+  top: -50px;
+  left: 0;
+  display: none;
+}
+
+.progress-bar__preview img {
+  max-width: 200px;
 }
 </style>

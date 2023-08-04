@@ -1,6 +1,8 @@
 <template>
-  <div class="player-wrap" :class="{
-    'player-wrap-hover': state.playBtnState == 'play' || state.isVideoHovering,
+  <div class="player-wrap"
+  @mousemove="mouseMovewWarp"
+  :class="{
+    'player-wrap-hover': state.playBtnState === 'play' || state.isVideoHovering,
     'is-lightsOff': state.lightsOff,
     'web-full-screen': state.webFullScreen,
   }">
@@ -149,7 +151,6 @@
       </div>
     </div>
   </div>
-  <!-- <ProgressTest :currentTime="currentTime" :duration="state.totalTime"></ProgressTest> -->
 </template>
 
 <script lang="ts" setup>
@@ -157,6 +158,7 @@ import SvgIcon from "../components/SvgIcon.vue";
 import ControlsProgress from "../components/ControlsProgress.vue";
 import PlaySwitch from "../components/PlaySwitch.vue";
 import { defineProps, reactive, ref, onMounted, watch, nextTick, onBeforeUnmount } from "vue";
+import { debounce } from "throttle-debounce";
 import { defaultProps } from "./defaultProps";
 import { isMobile, timeFormat } from "../utils/util";
 import Hlsjs from "hls.js";
@@ -237,7 +239,7 @@ const mutedPlay = () => {
 /**
  * 进度条移动设置提示框时间
  */
-const onProgressMove = (ev, val) => {
+const onProgressMove = (ev:Event,  val:number) => {
   if (videoRef.value) {
     state.progressCursorTime = timeFormat(videoRef.value.duration * val);
   }
@@ -246,7 +248,7 @@ const onProgressMove = (ev, val) => {
 /**
  * 进度条改变
  */
-const progressChange = (ev: Event, val) => {
+const progressChange = (ev: Event, val:number) => {
   if (videoRef.value) {
     let duration = videoRef.value.duration // 媒体总长
     videoRef.value.currentTime = duration * val;
@@ -257,6 +259,17 @@ const progressChange = (ev: Event, val) => {
   }
 };
 
+/**
+ * 控制器显示隐藏控制
+ */
+const hideControl = debounce(2000, () => {
+  state.isVideoHovering = false;
+});
+
+const mouseMovewWarp = (ev:Event) => {
+  state.isVideoHovering = true;
+  hideControl();
+};
 
 
 /**

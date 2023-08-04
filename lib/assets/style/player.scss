@@ -270,9 +270,9 @@
   }
 
   // 控制器显示
-  &:hover {
+  &.player-wrap-hover {
     .player-controller {
-      transform: translateY(0px);
+      transform: translateY(0px) ;
     }
   }
 }
