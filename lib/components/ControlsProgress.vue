@@ -201,7 +201,7 @@ const onDragEnd = (ev: Event) => {
 
     // 预加载进度条
     .d-progress__preload {
-      background: #717171;
+      background: rgba(0, 0, 0, 0.3);
     }
 
     // 颜色进度条

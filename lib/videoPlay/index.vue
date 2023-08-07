@@ -1,13 +1,10 @@
 <template>
-  <div class="player-wrap"
-  ref="refPlayerWrap"
-  @mousemove="mouseMovewWarp"
-  @mouseleave="state.isVideoHovering = false"
-  :class="{
-    'player-wrap-hover': state.playBtnState === 'play' || state.isVideoHovering,
-    'is-lightsOff': state.lightsOff,
-    'web-full-screen': state.webFullScreen,
-  }">
+  <div class="player-wrap" ref="refPlayerWrap" @mousemove="mouseMovewWarp" @mouseleave="state.isVideoHovering = false"
+    :class="{
+      'player-wrap-hover': state.playBtnState === 'play' || state.isVideoHovering,
+      'is-lightsOff': state.lightsOff,
+      'web-full-screen': state.webFullScreen,
+    }">
     <!-- 播放器 -->
     <div class="player-video">
       <!-- 
@@ -22,14 +19,15 @@
         :playsinline="playsinline"：这是一个动态绑定的内联播放属性。根据 playsinline 的值，如果为真，则在支持内联播放的浏览器中内联播放视频，否则在全屏播放。
         x-webkit-airplay="allow"：这是一个非标准的属性，用于在 WebKit 浏览器中启用 AirPlay 功能，允许将视频播放到支持 AirPlay 的设备上。
        -->
-      <video ref="videoRef" class="player-video-main" :class="{ 'video-mirror': state.mirror }"
+      <video ref="videoRef" class="player-video-main" :class="{ 'video-mirror': state.mirror }" v-bind="videoEvents"
         :controls="isMobile && state.speed ? true : false" :muted="state.muted" :volume="state.volume"
-        :autoplay="autoPlay" :loop="state.loop" :src="src" :poster="poster" :webkit-playsinline="playsinline"
+        :autoplay="autoPlay" :loop="state.loop" :src="src" :poster="state.poster" :webkit-playsinline="playsinline"
         :playsinline="playsinline" x-webkit-airplay="allow">
         您的浏览器不支持video标签!
       </video>
     </div>
-
+    <!-- 默认poster -->
+    <canvas v-if="!state.poster" ref="Canvas" id="myCanvas" style="display:none;"></canvas>
     <!-- 黑幕关灯模式 -->
     <transition name="d-fade-in">
       <div class="player-lightsOff" v-show="state.lightsOff"></div>
@@ -82,7 +80,7 @@
               <ul class="speed-main" style="text-align: center">
                 <li :class="{ 'speed-active': state.currentLevel == index }" v-for="(row, index) of state.qualityLevels"
                   :key="row">
-                  {{ row.name }} 
+                  {{ row.name }}
                 </li>
                 <!-- <li @click="qualityLevelsHandle({}, -1)">自动</li> -->
               </ul>
@@ -145,7 +143,8 @@
           </div>
 
           <!-- 全屏 -->
-          <div class="tool-item fullScreen-btn" @click="toggleFullScreenPlay" v-if="props.controlBtns.includes('fullScreen')">
+          <div class="tool-item fullScreen-btn" @click="toggleFullScreenPlay"
+            v-if="props.controlBtns.includes('fullScreen')">
             <div class="tool-item-main">全屏</div>
             <SvgIcon icon="Bfullscreen"></SvgIcon>
           </div>
@@ -159,13 +158,14 @@
 import SvgIcon from "../components/SvgIcon.vue";
 import ControlsProgress from "../components/ControlsProgress.vue";
 import PlaySwitch from "../components/PlaySwitch.vue";
-import {defineExpose, defineProps, reactive, ref, onMounted, watch, nextTick, onBeforeUnmount } from "vue";
+import { defineExpose, defineEmits, defineProps, reactive, ref, onMounted, watch, nextTick, onBeforeUnmount, useAttrs } from "vue";
 import { debounce } from "throttle-debounce";
-import { defaultProps } from "./defaultProps";
-import { isMobile, timeFormat,requestPictureInPicture,toggleFullScreen } from "../utils/util";
+import { defaultProps, videoEmits } from "./types";
+import { isMobile, timeFormat, requestPictureInPicture, toggleFullScreen, firstUpperCase } from "../utils/util";
 import Hlsjs from "hls.js";
 
 const props = defineProps(defaultProps);
+
 const state = reactive({
   ...props, //如果有自定义配置就会替换默认配置
   muted: props.muted,
@@ -184,12 +184,117 @@ const state = reactive({
   progressCursorTime: "00:00:00", //进度条光标时间
   qualityLevels: [], //分辨率数组
   currentLevel: 0, //首选分辨率
+  poster: props.poster || '', //封面图
 });
+
+const emits = defineEmits([
+  ...videoEmits,
+  "mirrorChange",
+  "loopChange",
+  "lightOffChange",
+]);
 
 // 播放器实例
 const videoRef = ref<HTMLVideoElement>();
 // 全屏实例
 const refPlayerWrap = ref<HTMLElement>();
+// canvas实例
+const Canvas = ref<HTMLCanvasElement>();
+
+const compose = (...args) => (value) => args.reduceRight((acc, fn) => fn(acc), value);
+
+
+// 收集video事件
+const videoEvents: any = videoEmits.reduce((events, emit) => {
+  let name = `on${firstUpperCase(emit)}`;
+  events[name] = (ev) => {
+    state.loadStateType = emit; //加载状态
+    emits(emit, ev);
+  };
+  return events;
+}, {});
+
+// 可以播放
+videoEvents["onCanplay"] = compose(videoEvents["onCanplay"], () => {
+  if (state.playBtnState !== "play") {
+    if (videoRef.value) {
+      videoRef.value.play();
+    }
+  }
+  if (state.autoPlay) {
+    if (videoRef.value) {
+      videoRef.value.play();
+    }
+    state.playBtnState = "pause";
+  }
+});
+
+// 播放结束
+videoEvents["onEnded"] = compose(videoEvents["onEnded"], () => {
+  state.playBtnState = "replay"; //此时的控制按钮应该显示重新播放
+});
+
+// 播放时间改变，没使用compose是因为要获取到ev,同时loadStateType不应该改变
+videoEvents["onTimeupdate"] = (ev) => {
+  emits("timeupdate", ev);
+  let duration = ev.duration || ev.target.duration || 0; // 媒体总长
+  let currentTime = ev.currentTime || ev.target.currentTime; // 当前媒体播放长度
+  state.playProgress = currentTime / duration; //播放进度比例
+  state.currentTime = timeFormat(currentTime);
+  state.totalTime = timeFormat(duration);
+};
+
+// 资源长度改变
+videoEvents["onDurationchange"] = (ev) => {
+  emits("durationchange", ev);
+  if (props.currentTime !== 0 && videoRef.value) {
+    videoRef.value.currentTime = props.currentTime
+  }
+  //更新当前时长的所有状态
+  videoEvents.onTimeupdate(ev)
+};
+
+// 缓冲下载中
+videoEvents["onProgress"] = (ev) => {
+  console.log("缓冲中...");
+  emits("progress", ev);
+  let duration = ev.target.duration; // 媒体总长
+  let length = ev.target.buffered;
+  let end = ev.target.buffered.length && ev.target.buffered.end(length - 1);
+  state.preloadBar = end / duration; //缓冲比例
+};
+
+// error
+videoEvents["onError"] = compose(videoEvents["onError"], () => {
+  state.playBtnState = "replay"; //此时的控制按钮应该显示重新播放
+});
+
+// loadeddata
+videoEvents["onLoadeddata"] = () => {
+  const ctx = Canvas.value?.getContext('2d');
+  // 指定要获取的视频时间（单位：秒）
+  const specifiedTime = 1; // 获取视频的第2秒
+  // 当视频当前时间大于等于指定的时间时
+  if (specifiedTime >= 1 && state.poster === '') {
+    // 从指定时间开始播放视频
+    videoRef.value.currentTime = specifiedTime;
+    // 将视频的宽度和高度设置为canvas的尺寸
+    Canvas.value.setAttribute('width', videoRef.value.videoWidth + '');
+    Canvas.value.setAttribute('height', videoRef.value.videoHeight + '');
+    // 在canvas上绘制当前帧的画面
+    ctx?.drawImage(videoRef.value, 0, 0, videoRef.value.videoWidth, videoRef.value.videoHeight);
+    // 将canvas图像转换成Base64编码的图片URL
+    const img = Canvas.value.toDataURL("image/jpeg");
+    state.poster = img as string;
+    // 移除timeupdate事件监听器，防止重复触发
+  }
+};
+
+// 获取用户自定义事件
+let attrs = useAttrs();
+for (let emit in attrs) {
+  videoEvents[emit] = attrs[emit];
+}
 
 /**
  * 播放暂停切换
@@ -242,7 +347,7 @@ const mutedPlay = () => {
 /**
  * 进度条移动设置提示框时间
  */
-const onProgressMove = (ev:Event,  val:number) => {
+const onProgressMove = (ev: Event, val: number) => {
   if (videoRef.value) {
     state.progressCursorTime = timeFormat(videoRef.value.duration * val);
   }
@@ -251,7 +356,7 @@ const onProgressMove = (ev:Event,  val:number) => {
 /**
  * 进度条改变
  */
-const progressChange = (ev: Event, val:number) => {
+const progressChange = (ev: Event, val: number) => {
   if (videoRef.value) {
     let duration = videoRef.value.duration // 媒体总长
     videoRef.value.currentTime = duration * val;
@@ -265,13 +370,12 @@ const progressChange = (ev: Event, val:number) => {
 /**
  * 控制器显示隐藏控制
  */
-const hideControl = debounce(1000, () => {
+const hideControl = debounce(1500, () => {
   state.isVideoHovering = false;
-  if(videoRef.value) videoRef.value.style.cursor = "none";
-  
+  if (videoRef.value) videoRef.value.style.cursor = "none";
 });
 const mouseMovewWarp = () => {
-  if(videoRef.value) videoRef.value.style.cursor = "auto";
+  if (videoRef.value) videoRef.value.style.cursor = "auto";
   state.isVideoHovering = true;
   hideControl();
 };
@@ -279,8 +383,8 @@ const mouseMovewWarp = () => {
 /**
  * 画中画
  */
- const requestPictureInPicturePlay = () => {
-  if(videoRef.value){
+const requestPictureInPicturePlay = () => {
+  if (videoRef.value) {
     videoRef.value.addEventListener('play', handlePlay); // 监听播放事件
     videoRef.value.addEventListener('pause', handlePause); // 监听暂停事件
     videoRef.value.addEventListener('leavepictureinpicture', handleLeavePiP); // 监听退出画中画事件
