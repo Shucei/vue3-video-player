@@ -30,6 +30,9 @@
     <!-- 默认poster & 截图 -->
     <canvas v-if="!state.poster" ref="Canvas" id="myCanvas" style="display:none;"></canvas>
 
+    <!-- 加载效果 -->
+    <PlayLoading :loadType="state.loadStateType" />
+
     <!-- 黑幕关灯模式 -->
     <transition name="d-fade-in">
       <div class="player-lightsOff" v-show="state.lightsOff"></div>
@@ -167,6 +170,7 @@
 import SvgIcon from "../components/SvgIcon.vue";
 import ControlsProgress from "../components/ControlsProgress.vue";
 import PlaySwitch from "../components/PlaySwitch.vue";
+import PlayLoading from "../components/PlayLoading.vue";
 import { defineExpose, defineEmits, defineProps, reactive, ref, onMounted, watch, nextTick, onBeforeUnmount, useAttrs } from "vue";
 import { debounce } from "throttle-debounce";
 import { defaultProps, videoEmits } from "./types";
@@ -563,7 +567,7 @@ const init = (): void => {
       console.error(`错误详情: ${errorDetails}`);
       if (errorFatal) {
         // displayError('发生了一个错误，请稍后重试。');
-        // state.VideoRef?.load();
+        // videoRef.value?.load();
       }
     });
   }

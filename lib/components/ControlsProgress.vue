@@ -15,7 +15,7 @@
 </template>
 <script lang="ts">
 export default {
-  name: 'DProgress'
+  name: 'ControlsProgress'
 }
 </script>
 <script setup lang="ts">
