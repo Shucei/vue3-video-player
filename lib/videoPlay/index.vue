@@ -30,6 +30,9 @@
     <!-- 默认poster & 截图 -->
     <canvas v-if="!state.poster" ref="Canvas" id="myCanvas" style="display:none;"></canvas>
 
+    <!-- 全屏模式&&鼠标滑过 顶部显示的内容 -->
+    <PlayTop :title="props.title" v-show="state.fullScreen"></PlayTop>
+
     <!-- 加载效果 -->
     <PlayLoading :loadType="state.loadStateType" />
 
@@ -171,6 +174,7 @@ import SvgIcon from "../components/SvgIcon.vue";
 import ControlsProgress from "../components/ControlsProgress.vue";
 import PlaySwitch from "../components/PlaySwitch.vue";
 import PlayLoading from "../components/PlayLoading.vue";
+import PlayTop from '../components/PlayTop.vue'
 import { defineExpose, defineEmits, defineProps, reactive, ref, onMounted, watch, nextTick, onBeforeUnmount, useAttrs } from "vue";
 import { debounce } from "throttle-debounce";
 import { defaultProps, videoEmits } from "./types";
