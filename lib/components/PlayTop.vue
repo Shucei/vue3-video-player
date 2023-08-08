@@ -53,7 +53,7 @@ onUnmounted(() => {
   padding: 0 20px;
   height: 60px;
   z-index: 3;
-  background-image: linear-gradient(rgba(0, 0, 0, 0.6), transparent);
+  background-image: linear-gradient(rgba(0, 0, 0, 1), transparent);
   justify-content: space-between;
 }
 </style>

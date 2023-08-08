@@ -7,18 +7,6 @@
     }">
     <!-- 播放器 -->
     <div class="player-video">
-      <!-- 
-        :controls="isMobile && state.speed ? true : false"：这是一个动态绑定的控制属性。如果 isMobile 为真且 state.speed 为真，判断是否移动端，是否支持快进后退，满足显示默认控制器，否则隐藏。
-        :muted="state.muted"：这是一个动态绑定的静音属性。根据 state.muted 的值，如果为真，则视频静音，否则取消静音。
-        :volume="state.volume"：这是一个动态绑定的音量属性。根据 state.volume 的值，设置视频的音量级别。
-        :autoplay="autoPlay"：这是一个动态绑定的自动播放属性。根据 autoPlay 的值，如果为真，则视频在加载后自动播放，否则不自动播放。
-        :loop="state.loop"：这是一个动态绑定的循环播放属性。根据 loop 的值，如果为真，则视频循环播放，否则播放一次后停止。
-        :src="state.src"：这是一个动态绑定的视频源属性。根据 state.src 的值，设置视频的源文件路径。
-        :poster="poster"：这是一个动态绑定的封面图属性。根据 poster 的值，设置视频的封面图。
-        :webkit-playsinline="playsinline"：这是一个动态绑定的 WebKit 内联播放属性。根据 playsinline 的值，如果为真，则在 WebKit 浏览器中内联播放视频，否则在全屏播放。
-        :playsinline="playsinline"：这是一个动态绑定的内联播放属性。根据 playsinline 的值，如果为真，则在支持内联播放的浏览器中内联播放视频，否则在全屏播放。
-        x-webkit-airplay="allow"：这是一个非标准的属性，用于在 WebKit 浏览器中启用 AirPlay 功能，允许将视频播放到支持 AirPlay 的设备上。
-       -->
       <video ref="videoRef" class="player-video-main" :class="{ 'video-mirror': state.mirror }" v-bind="videoEvents"
         :controls="isMobile && state.speed ? true : false" :muted="state.muted" :volume="state.volume"
         :autoplay="autoPlay" :loop="state.loop" :src="src" :poster="state.poster" :webkit-playsinline="playsinline"
@@ -27,11 +15,21 @@
       </video>
     </div>
 
+    <!-- 状态栏 移动端不显示-->
+    <div class="player-state" v-if="!isMobile">
+      <!-- 播放按钮 -->
+      <div class="play-btn" :class="{ 'dplayer-bezel-transition': state.playBtnState !== 'play' }">
+        <SvgIcon :icon="state.playBtnState" :size="40"></SvgIcon>
+      </div>
+      <!-- 操作信息通知 -->
+      <d-status :state="state"></d-status>
+    </div>
+
     <!-- 默认poster & 截图 -->
     <canvas v-if="!state.poster" ref="Canvas" id="myCanvas" style="display:none;"></canvas>
 
     <!-- 全屏模式&&鼠标滑过 顶部显示的内容 -->
-    <PlayTop :title="props.title" v-show="state.fullScreen"></PlayTop>
+    <PlayTop :title="props.title" v-show="state.fullScreen && state.isTop"></PlayTop>
 
     <!-- 加载效果 -->
     <PlayLoading :loadType="state.loadStateType" />
@@ -69,7 +67,8 @@
               ? 'volume-off'
               : state.volume > 0.5
                 ? 'volume-up'
-                : 'volume-down'" className="sound"></SvgIcon>
+                : 'volume-down'
+              " className="sound"></SvgIcon>
           </div>
           <div class="tool-item volume-box" v-if="props.controlBtns.includes('volume')">
             <div :class="{ 'is-muted': state.muted }">
@@ -89,15 +88,14 @@
 
         <div class="tool-bar dplayer-icons-right">
           <!-- 清晰度 -->
-          <div class="tool-item quality-btn">
-            720 高清
+          <div class="tool-item quality-btn" v-if="state.qualityLevels.length && props.controlBtns.includes('quality')">
+            {{ state.qualityLevels.length && (state.qualityLevels[state.currentLevel] || {}).name }}
             <div class="tool-item-main">
               <ul class="speed-main" style="text-align: center">
-                <li :class="{ 'speed-active': state.currentLevel == index }" v-for="(row, index) of state.qualityLevels"
-                  :key="row">
+                <li :class="{ 'speed-active': state.currentLevel == index }"
+                  v-for="( row, index ) of  state.qualityLevels " :key="row" @click="qualityLevelsHandle(row, index)">
                   {{ row.name }}
                 </li>
-                <!-- <li @click="qualityLevelsHandle({}, -1)">自动</li> -->
               </ul>
             </div>
           </div>
@@ -107,8 +105,8 @@
             {{ state.speedActive == "1.0" ? "倍速" : state.speedActive + "x" }}
             <div class="tool-item-main">
               <ul class="speed-main">
-                <li :class="{ 'speed-active': state.speedActive == row }" v-for="row of state.speedRate"
-                  :key="row as string">
+                <li :class="{ 'speed-active': state.speedActive == row }" v-for=" row  of  state.speedRate "
+                  :key="row as string" @click="playbackRate(row)">
                   {{ row }}x
                 </li>
               </ul>
@@ -202,6 +200,7 @@ const state = reactive<any>({
   qualityLevels: [], //分辨率数组
   currentLevel: 0, //首选分辨率
   poster: props.poster || '', //封面图
+  isTop: true
 });
 
 const emits = defineEmits([
@@ -391,11 +390,15 @@ const progressChange = (ev: Event, val: number) => {
  */
 const hideControl = debounce(1500, () => {
   state.isVideoHovering = false;
+  if (state.playBtnState !== 'play') {
+    state.isTop = false //控制top的显示隐藏
+  }
   if (videoRef.value) videoRef.value.style.cursor = "none";
 });
 const mouseMovewWarp = () => {
   if (videoRef.value) videoRef.value.style.cursor = "auto";
   state.isVideoHovering = true;
+  state.isTop = true //控制top的显示隐藏
   hideControl();
 };
 
@@ -497,6 +500,7 @@ const keypress = (ev) => {
   }
 };
 
+
 /**
  * 聚焦到播放器
  */
@@ -538,7 +542,9 @@ const init = (): void => {
       hls.on(Hlsjs.Events.MANIFEST_PARSED, (ev, data) => {
         console.log(data);
         state.currentLevel = data.firstLevel;
-        state.qualityLevels = data.levels || [];
+        state.qualityLevels = data.levels.reverse() || [];
+        console.log(state.qualityLevels, '=');
+
         // state.VideoRef.load();
       });
     });
@@ -577,11 +583,25 @@ const init = (): void => {
   }
 };
 
+
+// 切换清晰度
+const qualityLevelsHandle = (row, index) => {
+  hls.currentLevel = index
+  state.currentLevel = index
+};
+// 切换播放速度
+const playbackRate = (row) => {
+  state.speedActive = row;
+  videoRef.value.playbackRate = row;
+};
+
+
 onBeforeUnmount(() => {
   if (hls) {
     hls.destroy();
   }
 })
+
 
 watch(
   () => props.src,

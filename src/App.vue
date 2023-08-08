@@ -43,21 +43,21 @@ const options = reactive({
 });
 const video = ref(null);
 
-const durationchange = (ev) => {
-  console.log("durationchange", ev);
-};
-const timeupdate = (ev) => {
-  console.log("timeupdate", ev);
-};
-const progress = (ev) => {
-  console.log("progress", ev);
-};
-const volumechange = (ev) => {
-  console.log("volumechange", ev);
-};
-const canplay = (ev) => {
-  console.log("canplay", ev);
-};
+// const durationchange = (ev) => {
+//   console.log("durationchange", ev);
+// };
+// const timeupdate = (ev) => {
+//   console.log("timeupdate", ev);
+// };
+// const progress = (ev) => {
+//   console.log("progress", ev);
+// };
+// const volumechange = (ev) => {
+//   console.log("volumechange", ev);
+// };
+// const canplay = (ev) => {
+//   console.log("canplay", ev);
+// };
 nextTick(() => {
   console.log(video.value);
 });

@@ -277,16 +277,18 @@
 }
 
 .play-btn {
-  width: 90px;
-  height: 90px;
+  width: 60px;
+  height: 60px;
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(0, 0, 0, .7);
+  background-color: rgba(0, 0, 0, .4);
   border-radius: 50%;
+  font-size: 40px;
+  opacity: 0;
+  pointer-events: none;
 }
-
 
 // 黑幕
 .player-lightsOff {
