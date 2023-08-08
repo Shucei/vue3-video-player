@@ -189,7 +189,7 @@ const onDragEnd = (ev: Event) => {
         display: block;
         font-size: 12px;
         font-weight: 500;
-        background: rgba(0, 0, 0, 0.6);
+        background: rgba(155, 108, 108, 0.6);
         border-radius: 3px;
         transform: translateX(-50%);
       }
@@ -201,7 +201,7 @@ const onDragEnd = (ev: Event) => {
 
     // 预加载进度条
     .d-progress__preload {
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(67, 225, 204, 0.5);
     }
 
     // 颜色进度条

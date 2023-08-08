@@ -26,15 +26,24 @@
         您的浏览器不支持video标签!
       </video>
     </div>
-    <!-- 默认poster -->
+
+    <!-- 默认poster & 截图 -->
     <canvas v-if="!state.poster" ref="Canvas" id="myCanvas" style="display:none;"></canvas>
+
     <!-- 黑幕关灯模式 -->
     <transition name="d-fade-in">
       <div class="player-lightsOff" v-show="state.lightsOff"></div>
     </transition>
 
+    <!-- 快捷键控制(移动端不显示) -->
+    <input v-if="!isMobile" type="input" readonly ref="refInput" @dblclick="toggleFullScreenPlay"
+      @keyup.f="toggleFullScreenPlay" @keyup.esc="state.webFullScreen = false" @click="togglePlay"
+      @keydown.space="togglePlay" @keyup="keypress" @keydown.arrow-left="keydownLeft"
+      @keydown.arrow-up.arrow-down="volumeKeydown" @keydown="keypress" class="player-input" maxlength="0" />
+
     <!-- 控制器 -->
     <div class="player-controller">
+      <!-- 进度条 -->
       <div class="control-progress">
         <ControlsProgress class="progress-bar" :disabled="!state.speed" :hoverText="state.progressCursorTime"
           @change="progressChange" @onMousemove="onProgressMove" :size="'100%'" v-model="state.playProgress"
@@ -166,7 +175,7 @@ import Hlsjs from "hls.js";
 
 const props = defineProps(defaultProps);
 
-const state = reactive({
+const state = reactive<any>({
   ...props, //如果有自定义配置就会替换默认配置
   muted: props.muted,
   playBtnState: props.autoPlay ? "pause" : "play", // 播放按钮状态
@@ -200,6 +209,8 @@ const videoRef = ref<HTMLVideoElement>();
 const refPlayerWrap = ref<HTMLElement>();
 // canvas实例
 const Canvas = ref<HTMLCanvasElement>();
+// input实例
+const refInput = ref<HTMLInputElement>()
 
 const compose = (...args) => (value) => args.reduceRight((acc, fn) => fn(acc), value);
 
@@ -269,13 +280,14 @@ videoEvents["onError"] = compose(videoEvents["onError"], () => {
   state.playBtnState = "replay"; //此时的控制按钮应该显示重新播放
 });
 
-// loadeddata
+// loadeddata,媒体的第一帧已经加载完毕
 videoEvents["onLoadeddata"] = () => {
   const ctx = Canvas.value?.getContext('2d');
   // 指定要获取的视频时间（单位：秒）
-  const specifiedTime = 1; // 获取视频的第2秒
+  const specifiedTime = 1; // 获取视频的第1秒
   // 当视频当前时间大于等于指定的时间时
   if (specifiedTime >= 1 && state.poster === '') {
+    if (!(videoRef.value && Canvas.value)) return
     // 从指定时间开始播放视频
     videoRef.value.currentTime = specifiedTime;
     // 将视频的宽度和高度设置为canvas的尺寸
@@ -286,7 +298,6 @@ videoEvents["onLoadeddata"] = () => {
     // 将canvas图像转换成Base64编码的图片URL
     const img = Canvas.value.toDataURL("image/jpeg");
     state.poster = img as string;
-    // 移除timeupdate事件监听器，防止重复触发
   }
 };
 
@@ -412,13 +423,79 @@ const handleLeavePiP = () => {
 const toggleFullScreenPlay = () => {
   state.fullScreen = toggleFullScreen(refPlayerWrap.value);
 };
+
+/**
+ * 快捷键控制
+ */
+// 清空当前操作类型
+const clearHandleType = debounce(500, () => {
+  state.handleType = "";
+})
+// 音量 ++ --
+const volumeKeydown = (ev) => {
+  ev.preventDefault();
+  if (ev.code == "ArrowUp") {
+    state.volume = state.volume + 0.1 > 1 ? 1 : state.volume + 0.1;
+  } else {
+    state.volume = state.volume - 0.1 < 0 ? 0 : state.volume - 0.1;
+  }
+  state.muted = false;
+  state.handleType = "volume"; // 操作类型  音量
+  clearHandleType(); // 清空 操作类型
+};
+// 快进快退
+const keydownLeft = (ev) => {
+  if (!props.speed) return; // 如果不支持快进快退
+  if (videoRef.value) {
+    videoRef.value.currentTime = videoRef.value.currentTime < 10 ? 0.1 : videoRef.value.currentTime - 10;
+  }
+  videoEvents.onTimeupdate(videoRef.value);
+  playVideo();
+}
+
+// 倍数播放
+const keypress = (ev) => {
+  ev.preventDefault();
+  let pressType = ev.type;
+  if (ev.key == "ArrowRight" && videoRef.value) {
+    playVideo();
+    if (pressType == "keyup") {
+      clearTimeout(state.longPressTimeout);
+      // 如果不支持快进快退 如果关闭快进快退必须在没有长按倍速播放的情况下
+      if (!props.speed && !state.longPressTimeout) return;
+      if (state.isMultiplesPlay) {
+        //如果倍速播放中
+        videoRef.value.playbackRate = parseInt(state.speedActive);
+        state.isMultiplesPlay = false;
+      } else {
+        // 触发时间不足500毫秒，进度加10s
+        videoRef.value.currentTime = videoRef.value.currentTime + 10;
+        videoEvents.onTimeupdate(videoRef.value);
+      }
+      // 如果长按5倍速播放
+    } else if (pressType == "keydown") {
+      if (!props.speed) return; // 如果不支持快进快退 也不能支持长按倍速播放
+      if (state.isMultiplesPlay) {
+        clearTimeout(state.longPressTimeout);
+      }
+      // 长按5秒后倍速播放
+      state.longPressTimeout = setTimeout(() => {
+        state.isMultiplesPlay = true;
+        videoRef.value ? videoRef.value.playbackRate = 5 : '';
+        state.handleType = "playbackRate"; //操作类型 倍速播放
+        clearHandleType(); //清空 操作类型
+      }, 500);
+    }
+  }
+};
+
 /**
  * 聚焦到播放器
  */
-// const inputFocusHandle = () => {
-//   if (isMobile) return;
-//   videoRef.value?.focus();
-// };
+const inputFocusPlay = () => {
+  if (isMobile) return;
+  videoRef.value?.focus();
+};
 let hls
 const init = (): void => {
   if (
@@ -515,7 +592,7 @@ onMounted(() => {
     return;
   }
   // 聚焦到播放器
-  // inputFocusHandle();
+  inputFocusPlay();
 });
 
 defineExpose({

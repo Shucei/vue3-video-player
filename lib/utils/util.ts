@@ -19,7 +19,7 @@ export const timeFormat = (time) => {
 export const toggleFullScreen = (el) => {
   //如果当前是全屏状态，就退出全屏，否则进入全屏状态
   //获取当前的全屏状态
-  const documentEL = document as Document & { webkitIsFullScreen: boolean };
+  const documentEL = document as any;
   const isFullscreen = documentEL.webkitIsFullScreen || documentEL.fullscreen;
   if (!isFullscreen) {
     const inFun = el.requestFullscreen || el.webkitRequestFullScreen;
