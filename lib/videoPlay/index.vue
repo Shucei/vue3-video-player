@@ -18,12 +18,13 @@
     <!-- 状态栏 移动端不显示-->
     <div class="player-state" v-if="!isMobile">
       <!-- 播放按钮 -->
-      <div class="play-btn" :class="{ 'dplayer-bezel-transition': state.playBtnState !== 'play' }">
+      <div class="play-btn" :class="{ 'dplayer-bezel-transition': isMeb }">
         <SvgIcon :icon="state.playBtnState" :size="40"></SvgIcon>
       </div>
-      <!-- 操作信息通知 -->
-      <d-status :state="state"></d-status>
     </div>
+
+    <!-- 操作信息通知 -->
+    <!-- <d-status :state="state"></d-status> -->
 
     <!-- 默认poster & 截图 -->
     <canvas v-if="!state.poster" ref="Canvas" id="myCanvas" style="display:none;"></canvas>
@@ -89,12 +90,12 @@
         <div class="tool-bar dplayer-icons-right">
           <!-- 清晰度 -->
           <div class="tool-item quality-btn" v-if="state.qualityLevels.length && props.controlBtns.includes('quality')">
-            {{ state.qualityLevels.length && (state.qualityLevels[state.currentLevel] || {}).name }}
+            {{ state.qualityLevels.length && qualityLevelsFiter(state.qualityLevels[state.currentLevel].name) }}
             <div class="tool-item-main">
               <ul class="speed-main" style="text-align: center">
                 <li :class="{ 'speed-active': state.currentLevel == index }"
                   v-for="( row, index ) of  state.qualityLevels " :key="row" @click="qualityLevelsHandle(row, index)">
-                  {{ row.name }}
+                  {{ qualityLevelsFiter(row.name) }}
                 </li>
               </ul>
             </div>
@@ -221,6 +222,29 @@ const refInput = ref<HTMLInputElement>()
 
 const compose = (...args) => (value) => args.reduceRight((acc, fn) => fn(acc), value);
 
+const isMeb = ref<boolean>(false)
+
+// 计算清晰度
+const qualityLevelsFiter = (name) => {
+  switch (name) {
+    case '380':
+      name = name + ' 清晰';
+      break;
+    case '480':
+      name = name + ' 流畅';
+      break;
+    case '720':
+      name = name + ' 高清';
+      break;
+    case '1080':
+      name = name + ' 超清';
+      break;
+    default:
+      name = name + ' 原画';
+  }
+
+  return name;
+}
 
 // 收集video事件
 const videoEvents: any = videoEmits.reduce((events, emit) => {
@@ -318,6 +342,7 @@ for (let emit in attrs) {
  * 播放暂停切换
  */
 const togglePlay = (ev) => {
+  isMeb.value = false
   if (ev) ev.preventDefault();
   if (state.playBtnState === "play" || state.playBtnState === "replay") {
     // 点击播放按钮 或 重新播放按钮 后
@@ -326,7 +351,9 @@ const togglePlay = (ev) => {
     // 点击暂停按钮后
     pauseVideo();
   }
-
+  setTimeout(() => {
+    isMeb.value = true
+  }, 0)
 };
 
 /**
@@ -538,17 +565,16 @@ const init = (): void => {
     // 当媒体元素与Hls实例绑定时触发mediaAttached事件
     hls.on(Hlsjs.Events.MEDIA_ATTACHED, (ev, data) => {
       hls.loadSource(props.src);
+      // 设置开始播放的画质级别 (可选)
+      hls.startLevel = 2; // 使用默认值
       // 成功解析HLS清单文件后触发manifestParsed事件
       hls.on(Hlsjs.Events.MANIFEST_PARSED, (ev, data) => {
         console.log(data);
         state.currentLevel = data.firstLevel;
+        data.levels.shift()
         state.qualityLevels = data.levels.reverse() || [];
-        console.log(state.qualityLevels, '=');
-
-        // state.VideoRef.load();
       });
     });
-
 
     hls.on(Hlsjs.Events.LEVEL_SWITCHING, (event, data) => {
       // 在LEVEL_SWITCHING事件中执行质量级别切换前的操作
@@ -560,8 +586,6 @@ const init = (): void => {
 
     hls.on(Hlsjs.Events.LEVEL_SWITCHED, (event, data) => {
       // 在LEVEL_SWITCHED事件中执行质量级别切换后的操作
-      console.log('LEVEL_SWITCHED')
-      console.log(data);
       // 在此处可以执行一些后续操作，如恢复播放或隐藏加载指示器
       state.currentLevel = data.level
       // state.qualityLevels = Hls.levels || []
@@ -588,6 +612,12 @@ const init = (): void => {
 const qualityLevelsHandle = (row, index) => {
   hls.currentLevel = index
   state.currentLevel = index
+  // if (index === -1) {
+  //   // 启用自动画质
+  //   hls.config.autoStartLoad = true;
+  //   hls.config.capLevelToPlayerSize = true;
+  //   hls.config.autoLevelEnabled = true;
+  // }
 };
 // 切换播放速度
 const playbackRate = (row) => {
