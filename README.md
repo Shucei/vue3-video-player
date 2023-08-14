@@ -1,11 +1,12 @@
 # vue3-video-player
 
 <div align="center">
-<img src="./docs/images/icon.svg" alt="预览"/>
+<img src="./public//favicon.ico" alt="预览" />
 
 <h1 align="center">Vue3-Video-Player</h1>
 
 一个适应 Vue3 的视频播放组件
+
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/Shucei/vue3-video-player/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/Shucei/vue3-video-player/tree/main)
 
 ![主界面](./docs/images/效果图.png)

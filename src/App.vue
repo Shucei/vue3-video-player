@@ -28,7 +28,6 @@ const options = reactive({
   // https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
   // https://api.dogecloud.com/player/get.mp4?vcode=5ac682e6f8231991&userId=17&ext=.mp4
   // poster: "https://dogefs.s3.ladydaily.com/~/source/wallhaven/small/we/we1lrq.jpg?w=400&h=200&fmt=webp", //封面
-
 });
 const video = ref(null);
 

@@ -99,7 +99,7 @@ const mousemoveHandle = (ev: MouseEvent) => {
   state.hoverPosition = val
 
   let refProgressEl = refProgress.value as HTMLElement
-  let refTipsWidth = refTips.value?.clientWidth ? refTips.value?.clientWidth / 2 || 0 : 0
+  let refTipsWidth = refTips.value?.clientWidth ? refTips.value?.clientWidth / 2 || 0 : 0 
   let movePositon = ev.clientX - refProgressEl.getBoundingClientRect().left
   // 鼠标移动到两端时，提示框不超出进度条
   if (movePositon < refTipsWidth) {

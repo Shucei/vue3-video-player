@@ -1,6 +1,6 @@
 {
   "name": "vue3-player",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -43,7 +43,8 @@
     "vue player",
     "vue video",
     "video vue",
-    "vue3 video"
+    "vue3 video",
+    "video"
   ],
   "license": "ISC"
 }

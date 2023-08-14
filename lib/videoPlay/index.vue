@@ -24,7 +24,7 @@
     </div>
 
     <!-- 操作信息通知 -->
-    <!-- <d-status :state="state"></d-status> -->
+    <PlayStatus :state="state"></PlayStatus>
 
     <!-- 默认poster & 截图 -->
     <canvas v-if="!state.poster" ref="Canvas" id="myCanvas" style="display:none;"></canvas>
@@ -160,7 +160,7 @@
           <div class="tool-item fullScreen-btn" @click="toggleFullScreenPlay"
             v-if="props.controlBtns.includes('fullScreen')">
             <div class="tool-item-main">全屏</div>
-            <SvgIcon icon="Bfullscreen"></SvgIcon>
+            <SvgIcon icon="Bfullscreen" :style="'font-size:17px'"></SvgIcon>
           </div>
         </div>
       </div>
@@ -174,6 +174,7 @@ import ControlsProgress from "../components/ControlsProgress.vue";
 import PlaySwitch from "../components/PlaySwitch.vue";
 import PlayLoading from "../components/PlayLoading.vue";
 import PlayTop from '../components/PlayTop.vue'
+import PlayStatus from "../components/PlayStatus.vue";
 import { defineExpose, defineEmits, defineProps, reactive, ref, onMounted, watch, nextTick, onBeforeUnmount, useAttrs } from "vue";
 import { debounce } from "throttle-debounce";
 import { defaultProps, videoEmits } from "./types";
@@ -184,7 +185,6 @@ const props = defineProps(defaultProps);
 
 const state = reactive<any>({
   ...props, //如果有自定义配置就会替换默认配置
-  muted: props.muted,
   playBtnState: props.autoPlay ? "pause" : "play", // 播放按钮状态
   loadStateType: "loadstart", // 加载状态
   fullScreen: false,
@@ -242,7 +242,6 @@ const qualityLevelsFiter = (name) => {
     default:
       name = name + ' 原画';
   }
-
   return name;
 }
 
@@ -276,7 +275,7 @@ videoEvents["onEnded"] = compose(videoEvents["onEnded"], () => {
   state.playBtnState = "replay"; //此时的控制按钮应该显示重新播放
 });
 
-// 播放时间改变，没使用compose是因为要获取到ev,同时loadStateType不应该改变
+// 播放时间改变触发，没使用compose是因为要获取到ev,同时loadStateType不应该改变
 videoEvents["onTimeupdate"] = (ev) => {
   emits("timeupdate", ev);
   let duration = ev.duration || ev.target.duration || 0; // 媒体总长
@@ -405,7 +404,7 @@ const progressChange = (ev: Event, val: number) => {
   if (videoRef.value) {
     let duration = videoRef.value.duration // 媒体总长
     videoRef.value.currentTime = duration * val;
-    if (state.playBtnState == "play") {
+    if (state.playBtnState === "play") {
       videoRef.value.play();
       state.playBtnState = "pause";
     }
@@ -481,7 +480,7 @@ const volumeKeydown = (ev) => {
   state.handleType = "volume"; // 操作类型  音量
   clearHandleType(); // 清空 操作类型
 };
-// 快进快退
+// 快退
 const keydownLeft = (ev) => {
   if (!props.speed) return; // 如果不支持快进快退
   if (videoRef.value) {
@@ -489,7 +488,7 @@ const keydownLeft = (ev) => {
   }
   videoEvents.onTimeupdate(videoRef.value);
   playVideo();
-}
+} 
 
 // 倍数播放
 const keypress = (ev) => {
@@ -535,6 +534,8 @@ const inputFocusPlay = () => {
   if (isMobile) return;
   videoRef.value?.focus();
 };
+
+
 let hls
 const init = (): void => {
   if (
@@ -558,7 +559,7 @@ const init = (): void => {
       startPosition：设置初始播放位置。
      * 
      */
-    hls = new Hlsjs({ fragLoadingTimeOut: 2000 });
+    hls = new Hlsjs({ fragLoadingTimeOut: 2000, });
     hls.detachMedia(); //解除绑定
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     hls.attachMedia(videoRef.value!);
@@ -566,10 +567,9 @@ const init = (): void => {
     hls.on(Hlsjs.Events.MEDIA_ATTACHED, (ev, data) => {
       hls.loadSource(props.src);
       // 设置开始播放的画质级别 (可选)
-      hls.startLevel = 2; // 使用默认值
+      hls.startLevel = 0; // 使用默认值
       // 成功解析HLS清单文件后触发manifestParsed事件
       hls.on(Hlsjs.Events.MANIFEST_PARSED, (ev, data) => {
-        console.log(data);
         state.currentLevel = data.firstLevel;
         data.levels.shift()
         state.qualityLevels = data.levels.reverse() || [];
@@ -593,15 +593,25 @@ const init = (): void => {
     });
 
     // 监听错误事件
+
     hls.on(Hlsjs.Events.ERROR, (event, data) => {
-      const errorType = data.type;
-      const errorDetails = data.details;
-      const errorFatal = data.fatal;
-      console.error(`HLS.js错误: ${errorType}`);
-      console.error(`错误详情: ${errorDetails}`);
-      if (errorFatal) {
-        // displayError('发生了一个错误，请稍后重试。');
-        // videoRef.value?.load();
+      if (data.fatal) {
+        switch (data.type) {
+          case Hlsjs.ErrorTypes.NETWORK_ERROR:
+            // 尝试重新加载视频源
+            console.log('网络错误');
+
+            hls.startLoad(); // 重新加载
+            // videoRef.value.load();
+            break;
+          case Hlsjs.ErrorTypes.MEDIA_ERROR:
+            console.log('媒体解码/播放错误');
+            hls.recoverMediaError();
+            // 如果有必要，可以尝试刷新页面或重启浏览器来清除可能存在的问题
+            break;
+          default:
+          // 其他类型的错误处理
+        }
       }
     });
   }
