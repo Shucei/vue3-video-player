@@ -488,7 +488,7 @@ const keydownLeft = (ev) => {
   }
   videoEvents.onTimeupdate(videoRef.value);
   playVideo();
-} 
+}
 
 // 倍数播放
 const keypress = (ev) => {
@@ -672,7 +672,7 @@ defineExpose({
 
 <script lang="ts">
 export default {
-  name: "VideoPlay",
+  name: "videoPlay",
 };
 </script>
 <style lang="scss" scoped>

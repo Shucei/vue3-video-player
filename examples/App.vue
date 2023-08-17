@@ -1,12 +1,14 @@
 <template>
-  <div style="text-align: center;width: 700px;margin: auto;">
+  <div style="width: 700px;margin: auto;">
     <videoPlay ref="video" v-bind="options" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref, nextTick } from "vue";
-import { videoPlay } from "../lib/index";
+
+
+
 
 const options = reactive({
   width: "800px", //播放器宽度

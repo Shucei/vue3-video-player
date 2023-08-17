@@ -8,10 +8,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { isExternal as external } from "../utils/validate";
-const requireAll = (requireContext) =>
-  requireContext.keys().map(requireContext) // 通过正则匹配引入相应的文件
-const req = require.context('../assets/icon/svg', false, /\.svg$/) // 找到icons目录下以.svg结尾的文件
-requireAll(req)
+
 export default defineComponent({
   name: "SvgIcon",
   props: {
