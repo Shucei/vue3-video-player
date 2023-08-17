@@ -7,7 +7,7 @@
 
 一个适应 Vue3 的视频播放组件
 
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/Shucei/viplayerer/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/Shucei/viplayerer/tree/main)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/Shucei/viplayer/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/Shucei/viplayer/tree/main)
 
 ![主界面](./docs/images/效果图.png)
 
