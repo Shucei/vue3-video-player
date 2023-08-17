@@ -106,11 +106,9 @@ const options = reactive({
 <style scoped></style>
 ```
 
-:::
-
 可以通过`props`的`speed`开启或关闭进度条功能, 并且通过 `currentTime`属性控制从 60 秒开始播放
 
-:::demo 通过`speed`关闭进度条拖动功能。 并且通过 `currentTime`属性控制从 60 秒开始播放
+demo 通过`speed`关闭进度条拖动功能。 并且通过 `currentTime`属性控制从 60 秒开始播放
 
 ```vue
 <template>
@@ -136,10 +134,9 @@ const options = reactive({
 <style scoped></style>
 ```
 
-:::
-
 还可以通过`props`的`control`属性 来控制是否显示控制器
-:::demo 通过`control` 来控制是否显示控制器
+
+demo 通过`control` 来控制是否显示控制器
 
 ```vue
 <template>
@@ -164,11 +161,9 @@ const options = reactive({
 <style scoped></style>
 ```
 
-:::
-
 ## 事件示例
 
-:::demo `viplayer` 支持原生`video`所有事件。
+- demo `viplayer` 支持原生`video`所有事件。
 
 ```vue
 <template>
@@ -211,11 +206,9 @@ const onCanplay = (ev) => {
 <style scoped></style>
 ```
 
-:::
-
 ## Hls m3u8 视频/直播
 
-:::demo `viplayer` 支持 m3u8(hls)播放
+demo `viplayer` 支持 m3u8(hls)播放
 
 ```vue
 <template>
