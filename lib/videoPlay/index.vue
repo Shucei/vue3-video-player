@@ -27,7 +27,7 @@
     <PlayStatus :state="state"></PlayStatus>
 
     <!-- 默认poster & 截图 -->
-    <canvas v-if="!state.poster" ref="Canvas" id="myCanvas" style="display:none;"></canvas>
+    <canvas ref="Canvas" id="myCanvas" style="display:none;"></canvas>
 
     <!-- 全屏模式&&鼠标滑过 顶部显示的内容 -->
     <PlayTop :title="props.title" v-show="state.fullScreen && state.isTop"></PlayTop>
@@ -115,7 +115,7 @@
           </div>
 
           <!-- 截图 -->
-          <div class="tool-item pip-btn" v-if="props.controlBtns.includes('screenshot')">
+          <div class="tool-item pip-btn" @click="screenShot">
             <SvgIcon icon="screenshot" class="screenshot"></SvgIcon>
             <div class="tool-item-main">截图</div>
           </div>
@@ -165,6 +165,7 @@
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -216,7 +217,7 @@ const videoRef = ref<HTMLVideoElement>();
 // 全屏实例
 const refPlayerWrap = ref<HTMLElement>();
 // canvas实例
-const Canvas = ref<HTMLCanvasElement>();
+const Canvas = ref<HTMLCanvasElement | null>();
 // input实例
 const refInput = ref<HTMLInputElement>()
 
@@ -328,6 +329,7 @@ videoEvents["onLoadeddata"] = () => {
     // 将canvas图像转换成Base64编码的图片URL
     const img = Canvas.value.toDataURL("image/jpeg");
     state.poster = img as string;
+    Canvas.value = null;
   }
 };
 
@@ -393,6 +395,7 @@ const mutedPlay = () => {
  */
 const onProgressMove = (ev: Event, val: number) => {
   if (videoRef.value) {
+    // generatePreviewImage(videoRef.value.duration * val)
     state.progressCursorTime = timeFormat(videoRef.value.duration * val);
   }
 };
@@ -427,6 +430,41 @@ const mouseMovewWarp = () => {
   state.isTop = true //控制top的显示隐藏
   hideControl();
 };
+
+/**
+ * 截图
+ */
+const screenShot = async () => {
+  if (videoRef.value) {
+    const ctx = Canvas.value?.getContext('2d');
+    // 将视频的宽度和高度设置为canvas的尺寸
+    Canvas.value?.setAttribute('width', videoRef.value.videoWidth + '');
+    Canvas.value?.setAttribute('height', videoRef.value.videoHeight + '');
+    // 在canvas上绘制当前帧的画面
+    ctx?.drawImage(videoRef.value, 0, 0, videoRef.value.videoWidth, videoRef.value.videoHeight);
+    const blob = await new Promise((resolve) => Canvas.value?.toBlob(resolve, "image/png"))
+
+    const url = URL.createObjectURL(blob as Blob)
+    // 创建a标签
+    const a = document.createElement('a');
+    // 创建鼠标事件
+    const event = new MouseEvent('click');
+    // 指定下载的文件名
+    a.download = '截图.png';
+    // a标签的href属性指定下载的文件地址
+    a.href = url;
+    // 触发a标签的点击事件
+    a.dispatchEvent(event);
+    // 释放掉blob对象
+    URL.revokeObjectURL(url);
+    // 释放掉canvas对象
+    Canvas.value = null;
+    // 卸载a标签的点击事件
+    a.onclick = null;
+    // 释放掉a标签
+    a.remove();
+  }
+}
 
 /**
  * 画中画
@@ -685,5 +723,13 @@ export default {
   width: v-bind(width);
   height: v-bind(height);
   $font-color: v-bind(theme);
+}
+
+.img {
+  width: 150px;
+  height: 150px;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 </style>

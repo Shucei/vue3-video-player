@@ -41,7 +41,8 @@ module.exports = defineConfig({
       .end();
   },
   configureWebpack: {
-    entry: './lib/index.ts', // 你的入口文件路径
+    entry: './examples/main.ts', // 测试文件路径
+    // entry: './lib/index.ts', // 打包文件路径
     output: {
       library: 'index', // 全局变量名
       libraryTarget: 'umd', // 打包格式

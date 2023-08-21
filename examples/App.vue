@@ -6,9 +6,7 @@
 
 <script setup lang="ts">
 import { reactive, ref, nextTick } from "vue";
-
-
-
+import videoPlay from "../lib/index";
 
 const options = reactive({
   width: "800px", //播放器宽度
