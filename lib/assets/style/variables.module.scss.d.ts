@@ -1,6 +1,4 @@
 export interface IGlobalScss {
-  IconSize: string;
-  IconColor: string;
   fontColor: string;
   playerWidth: string;
   playerHeight: string;

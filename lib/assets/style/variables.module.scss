@@ -1,12 +1,10 @@
 
-$IconSize: 16px;
-$IconColor: #fff;
 
 // 字体主题相关的变量值：
 $font-color:#409eff;
 
 // 播放器尺寸相关的变量值：
-$player-width: 800px;
+$player-width: 700px;
 $player-height: 450px;
 
 // 控制器相关的变量值：
@@ -22,8 +20,6 @@ $time-display-color: #fff;
 // https://www.bluematador.com/blog/how-to-share-variables-between-js-and-sass
 // JS 与 scss 共享变量，在 scss 中通过 :export 进行导出，在 js 中可通过 ESM 进行导入
 :export {
-  IconSize: $IconSize;
-  IconColor: $IconColor;
   fontColor: $font-color;
   playerWidth: $player-width;
   playerHeight: $player-height;

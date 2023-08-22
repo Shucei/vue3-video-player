@@ -1,12 +1,13 @@
 <template>
-  <div class="player-wrap" ref="refPlayerWrap" @mousemove="mouseMovewWarp" @mouseleave="state.isVideoHovering = false"
-    :class="{
+  <div class="player-wrap" :style="videoStyle" ref="refPlayerWrap" @mousemove="mouseMovewWarp"
+    @mouseleave="state.isVideoHovering = false" :class="{
       'player-wrap-hover': state.playBtnState === 'play' || state.isVideoHovering,
       'is-lightsOff': state.lightsOff,
       'web-full-screen': state.webFullScreen,
     }">
     <!-- 播放器 -->
     <div class="player-video">
+
       <video ref="videoRef" class="player-video-main" :class="{ 'video-mirror': state.mirror }" v-bind="videoEvents"
         :controls="isMobile && state.speed ? true : false" :muted="state.muted" :volume="state.volume"
         :autoplay="autoPlay" :loop="state.loop" :src="src" :poster="state.poster" :webkit-playsinline="playsinline"
@@ -27,7 +28,7 @@
     <PlayStatus :state="state"></PlayStatus>
 
     <!-- 默认poster & 截图 -->
-    <canvas ref="Canvas" id="myCanvas" style="display:none;"></canvas>
+    <canvas ref="Canvas" id="myCanvas" style="display: none"></canvas>
 
     <!-- 全屏模式&&鼠标滑过 顶部显示的内容 -->
     <PlayTop :title="props.title" v-show="state.fullScreen && state.isTop"></PlayTop>
@@ -90,11 +91,14 @@
         <div class="tool-bar dplayer-icons-right">
           <!-- 清晰度 -->
           <div class="tool-item quality-btn" v-if="state.qualityLevels.length && props.controlBtns.includes('quality')">
-            {{ state.qualityLevels.length && qualityLevelsFiter(state.qualityLevels[state.currentLevel].name) }}
+            {{
+              state.qualityLevels.length &&
+              qualityLevelsFiter(state.qualityLevels[state.currentLevel].name)
+            }}
             <div class="tool-item-main">
               <ul class="speed-main" style="text-align: center">
-                <li :class="{ 'speed-active': state.currentLevel == index }"
-                  v-for="( row, index ) of  state.qualityLevels " :key="row" @click="qualityLevelsHandle(row, index)">
+                <li :class="{ 'speed-active': state.currentLevel == index }" v-for="(row, index) of state.qualityLevels"
+                  :key="row" @click="qualityLevelsHandle(row, index)">
                   {{ qualityLevelsFiter(row.name) }}
                 </li>
               </ul>
@@ -106,7 +110,7 @@
             {{ state.speedActive == "1.0" ? "倍速" : state.speedActive + "x" }}
             <div class="tool-item-main">
               <ul class="speed-main">
-                <li :class="{ 'speed-active': state.speedActive == row }" v-for=" row  of  state.speedRate "
+                <li :class="{ 'speed-active': state.speedActive == row }" v-for="row of state.speedRate"
                   :key="row as string" @click="playbackRate(row)">
                   {{ row }}x
                 </li>
@@ -160,12 +164,11 @@
           <div class="tool-item fullScreen-btn" @click="toggleFullScreenPlay"
             v-if="props.controlBtns.includes('fullScreen')">
             <div class="tool-item-main">全屏</div>
-            <SvgIcon icon="Bfullscreen" :style="'font-size:17px'"></SvgIcon>
+            <SvgIcon icon="Bfullscreen" className="bfullscreen"></SvgIcon>
           </div>
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -174,15 +177,35 @@ import SvgIcon from "../components/SvgIcon.vue";
 import ControlsProgress from "../components/ControlsProgress.vue";
 import PlaySwitch from "../components/PlaySwitch.vue";
 import PlayLoading from "../components/PlayLoading.vue";
-import PlayTop from '../components/PlayTop.vue'
+import PlayTop from "../components/PlayTop.vue";
 import PlayStatus from "../components/PlayStatus.vue";
-import { defineExpose, defineEmits, defineProps, reactive, ref, onMounted, watch, nextTick, onBeforeUnmount, useAttrs } from "vue";
+import {
+  defineExpose,
+  defineEmits,
+  defineProps,
+  reactive,
+  ref,
+  onMounted,
+  watch,
+  nextTick,
+  onBeforeUnmount,
+  useAttrs,
+  computed,
+} from "vue";
 import { debounce } from "throttle-debounce";
 import { defaultProps, videoEmits } from "./types";
-import { isMobile, timeFormat, requestPictureInPicture, toggleFullScreen, firstUpperCase } from "../utils/util";
+import {
+  isMobile,
+  timeFormat,
+  requestPictureInPicture,
+  toggleFullScreen,
+  firstUpperCase,
+} from "../utils/util";
 import Hlsjs from "hls.js";
-
+import variables from "../assets/style/variables.module.scss";
+import { px2rem } from "../utils/rem";
 const props = defineProps(defaultProps);
+// console.log(variables);
 
 const state = reactive<any>({
   ...props, //如果有自定义配置就会替换默认配置
@@ -201,16 +224,11 @@ const state = reactive<any>({
   progressCursorTime: "00:00:00", //进度条光标时间
   qualityLevels: [], //分辨率数组
   currentLevel: 0, //首选分辨率
-  poster: props.poster || '', //封面图
-  isTop: true
+  poster: props.poster || "", //封面图
+  isTop: true,
 });
 
-const emits = defineEmits([
-  ...videoEmits,
-  "mirrorChange",
-  "loopChange",
-  "lightOffChange",
-]);
+const emits = defineEmits([...videoEmits, "mirrorChange", "loopChange", "lightOffChange"]);
 
 // 播放器实例
 const videoRef = ref<HTMLVideoElement>();
@@ -219,32 +237,42 @@ const refPlayerWrap = ref<HTMLElement>();
 // canvas实例
 const Canvas = ref<HTMLCanvasElement | null>();
 // input实例
-const refInput = ref<HTMLInputElement>()
+const refInput = ref<HTMLInputElement>();
 
-const compose = (...args) => (value) => args.reduceRight((acc, fn) => fn(acc), value);
+const compose =
+  (...args) =>
+    (value) =>
+      args.reduceRight((acc, fn) => fn(acc), value);
 
-const isMeb = ref<boolean>(false)
+const isMeb = ref<boolean>(false);
+
+const videoStyle = computed(() => {
+  return {
+    width: px2rem(props.width),
+    height: px2rem(props.height),
+  };
+});
 
 // 计算清晰度
 const qualityLevelsFiter = (name) => {
   switch (name) {
-    case '380':
-      name = name + ' 清晰';
+    case "380":
+      name = name + " 清晰";
       break;
-    case '480':
-      name = name + ' 流畅';
+    case "480":
+      name = name + " 流畅";
       break;
-    case '720':
-      name = name + ' 高清';
+    case "720":
+      name = name + " 高清";
       break;
-    case '1080':
-      name = name + ' 超清';
+    case "1080":
+      name = name + " 超清";
       break;
     default:
-      name = name + ' 原画';
+      name = name + " 原画";
   }
   return name;
-}
+};
 
 // 收集video事件
 const videoEvents: any = videoEmits.reduce((events, emit) => {
@@ -290,10 +318,10 @@ videoEvents["onTimeupdate"] = (ev) => {
 videoEvents["onDurationchange"] = (ev) => {
   emits("durationchange", ev);
   if (props.currentTime !== 0 && videoRef.value) {
-    videoRef.value.currentTime = props.currentTime
+    videoRef.value.currentTime = props.currentTime;
   }
   //更新当前时长的所有状态
-  videoEvents.onTimeupdate(ev)
+  videoEvents.onTimeupdate(ev);
 };
 
 // 缓冲下载中
@@ -313,17 +341,17 @@ videoEvents["onError"] = compose(videoEvents["onError"], () => {
 
 // loadeddata,媒体的第一帧已经加载完毕
 videoEvents["onLoadeddata"] = () => {
-  const ctx = Canvas.value?.getContext('2d');
+  const ctx = Canvas.value?.getContext("2d");
   // 指定要获取的视频时间（单位：秒）
   const specifiedTime = 1; // 获取视频的第1秒
   // 当视频当前时间大于等于指定的时间时
-  if (specifiedTime >= 1 && state.poster === '') {
-    if (!(videoRef.value && Canvas.value)) return
+  if (specifiedTime >= 1 && state.poster === "") {
+    if (!(videoRef.value && Canvas.value)) return;
     // 从指定时间开始播放视频
     videoRef.value.currentTime = specifiedTime;
     // 将视频的宽度和高度设置为canvas的尺寸
-    Canvas.value.setAttribute('width', videoRef.value.videoWidth + '');
-    Canvas.value.setAttribute('height', videoRef.value.videoHeight + '');
+    Canvas.value.setAttribute("width", videoRef.value.videoWidth + "");
+    Canvas.value.setAttribute("height", videoRef.value.videoHeight + "");
     // 在canvas上绘制当前帧的画面
     ctx?.drawImage(videoRef.value, 0, 0, videoRef.value.videoWidth, videoRef.value.videoHeight);
     // 将canvas图像转换成Base64编码的图片URL
@@ -343,7 +371,7 @@ for (let emit in attrs) {
  * 播放暂停切换
  */
 const togglePlay = (ev) => {
-  isMeb.value = false
+  isMeb.value = false;
   if (ev) ev.preventDefault();
   if (state.playBtnState === "play" || state.playBtnState === "replay") {
     // 点击播放按钮 或 重新播放按钮 后
@@ -353,8 +381,8 @@ const togglePlay = (ev) => {
     pauseVideo();
   }
   setTimeout(() => {
-    isMeb.value = true
-  }, 0)
+    isMeb.value = true;
+  }, 0);
 };
 
 /**
@@ -405,7 +433,7 @@ const onProgressMove = (ev: Event, val: number) => {
  */
 const progressChange = (ev: Event, val: number) => {
   if (videoRef.value) {
-    let duration = videoRef.value.duration // 媒体总长
+    let duration = videoRef.value.duration; // 媒体总长
     videoRef.value.currentTime = duration * val;
     if (state.playBtnState === "play") {
       videoRef.value.play();
@@ -419,15 +447,15 @@ const progressChange = (ev: Event, val: number) => {
  */
 const hideControl = debounce(1500, () => {
   state.isVideoHovering = false;
-  if (state.playBtnState !== 'play') {
-    state.isTop = false //控制top的显示隐藏
+  if (state.playBtnState !== "play") {
+    state.isTop = false; //控制top的显示隐藏
   }
   if (videoRef.value) videoRef.value.style.cursor = "none";
 });
 const mouseMovewWarp = () => {
   if (videoRef.value) videoRef.value.style.cursor = "auto";
   state.isVideoHovering = true;
-  state.isTop = true //控制top的显示隐藏
+  state.isTop = true; //控制top的显示隐藏
   hideControl();
 };
 
@@ -436,21 +464,21 @@ const mouseMovewWarp = () => {
  */
 const screenShot = async () => {
   if (videoRef.value) {
-    const ctx = Canvas.value?.getContext('2d');
+    const ctx = Canvas.value?.getContext("2d");
     // 将视频的宽度和高度设置为canvas的尺寸
-    Canvas.value?.setAttribute('width', videoRef.value.videoWidth + '');
-    Canvas.value?.setAttribute('height', videoRef.value.videoHeight + '');
+    Canvas.value?.setAttribute("width", videoRef.value.videoWidth + "");
+    Canvas.value?.setAttribute("height", videoRef.value.videoHeight + "");
     // 在canvas上绘制当前帧的画面
     ctx?.drawImage(videoRef.value, 0, 0, videoRef.value.videoWidth, videoRef.value.videoHeight);
-    const blob = await new Promise((resolve) => Canvas.value?.toBlob(resolve, "image/png"))
+    const blob = await new Promise((resolve) => Canvas.value?.toBlob(resolve, "image/png"));
 
-    const url = URL.createObjectURL(blob as Blob)
+    const url = URL.createObjectURL(blob as Blob);
     // 创建a标签
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     // 创建鼠标事件
-    const event = new MouseEvent('click');
+    const event = new MouseEvent("click");
     // 指定下载的文件名
-    a.download = '截图.png';
+    a.download = "截图.png";
     // a标签的href属性指定下载的文件地址
     a.href = url;
     // 触发a标签的点击事件
@@ -464,33 +492,33 @@ const screenShot = async () => {
     // 释放掉a标签
     a.remove();
   }
-}
+};
 
 /**
  * 画中画
  */
 const requestPictureInPicturePlay = () => {
   if (videoRef.value) {
-    videoRef.value.addEventListener('play', handlePlay); // 监听播放事件
-    videoRef.value.addEventListener('pause', handlePause); // 监听暂停事件
-    videoRef.value.addEventListener('leavepictureinpicture', handleLeavePiP); // 监听退出画中画事件
+    videoRef.value.addEventListener("play", handlePlay); // 监听播放事件
+    videoRef.value.addEventListener("pause", handlePause); // 监听暂停事件
+    videoRef.value.addEventListener("leavepictureinpicture", handleLeavePiP); // 监听退出画中画事件
   }
   requestPictureInPicture(videoRef.value as HTMLVideoElement);
 };
 const handlePlay = () => {
   if (document.pictureInPictureElement) {
-    state.playBtnState = "pause"
+    state.playBtnState = "pause";
   }
 };
 const handlePause = () => {
   if (document.pictureInPictureElement) {
-    state.playBtnState = "play"
+    state.playBtnState = "play";
   }
 };
 const handleLeavePiP = () => {
-  videoRef.value?.removeEventListener('play', handlePlay);
-  videoRef.value?.removeEventListener('pause', handlePause);
-  videoRef.value?.removeEventListener('leavepictureinpicture', handleLeavePiP);
+  videoRef.value?.removeEventListener("play", handlePlay);
+  videoRef.value?.removeEventListener("pause", handlePause);
+  videoRef.value?.removeEventListener("leavepictureinpicture", handleLeavePiP);
 };
 /**
  * 全屏
@@ -505,7 +533,7 @@ const toggleFullScreenPlay = () => {
 // 清空当前操作类型
 const clearHandleType = debounce(500, () => {
   state.handleType = "";
-})
+});
 // 音量 ++ --
 const volumeKeydown = (ev) => {
   ev.preventDefault();
@@ -522,11 +550,12 @@ const volumeKeydown = (ev) => {
 const keydownLeft = (ev) => {
   if (!props.speed) return; // 如果不支持快进快退
   if (videoRef.value) {
-    videoRef.value.currentTime = videoRef.value.currentTime < 10 ? 0.1 : videoRef.value.currentTime - 10;
+    videoRef.value.currentTime =
+      videoRef.value.currentTime < 10 ? 0.1 : videoRef.value.currentTime - 10;
   }
   videoEvents.onTimeupdate(videoRef.value);
   playVideo();
-}
+};
 
 // 倍数播放
 const keypress = (ev) => {
@@ -556,14 +585,13 @@ const keypress = (ev) => {
       // 长按5秒后倍速播放
       state.longPressTimeout = setTimeout(() => {
         state.isMultiplesPlay = true;
-        videoRef.value ? videoRef.value.playbackRate = 5 : '';
+        videoRef.value ? (videoRef.value.playbackRate = 5) : "";
         state.handleType = "playbackRate"; //操作类型 倍速播放
         clearHandleType(); //清空 操作类型
       }, 500);
     }
   }
 };
-
 
 /**
  * 聚焦到播放器
@@ -573,8 +601,7 @@ const inputFocusPlay = () => {
   videoRef.value?.focus();
 };
 
-
-let hls
+let hls;
 const init = (): void => {
   if (
     videoRef.value?.canPlayType(props.type) ||
@@ -597,7 +624,7 @@ const init = (): void => {
       startPosition：设置初始播放位置。
      * 
      */
-    hls = new Hlsjs({ fragLoadingTimeOut: 2000, });
+    hls = new Hlsjs({ fragLoadingTimeOut: 2000 });
     hls.detachMedia(); //解除绑定
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     hls.attachMedia(videoRef.value!);
@@ -609,14 +636,14 @@ const init = (): void => {
       // 成功解析HLS清单文件后触发manifestParsed事件
       hls.on(Hlsjs.Events.MANIFEST_PARSED, (ev, data) => {
         state.currentLevel = data.firstLevel;
-        data.levels.shift()
+        data.levels.shift();
         state.qualityLevels = data.levels.reverse() || [];
       });
     });
 
     hls.on(Hlsjs.Events.LEVEL_SWITCHING, (event, data) => {
       // 在LEVEL_SWITCHING事件中执行质量级别切换前的操作
-      console.log('LEVEL_SWITCHING')
+      console.log("LEVEL_SWITCHING");
       // 在此处可以执行一些预处理操作，如暂停视频播放或显示加载指示器
       // state.qualityLevels = Hls.levels || []
       // state.VideoRef.load();
@@ -625,7 +652,7 @@ const init = (): void => {
     hls.on(Hlsjs.Events.LEVEL_SWITCHED, (event, data) => {
       // 在LEVEL_SWITCHED事件中执行质量级别切换后的操作
       // 在此处可以执行一些后续操作，如恢复播放或隐藏加载指示器
-      state.currentLevel = data.level
+      state.currentLevel = data.level;
       // state.qualityLevels = Hls.levels || []
       // state.VideoRef.load();
     });
@@ -637,13 +664,13 @@ const init = (): void => {
         switch (data.type) {
           case Hlsjs.ErrorTypes.NETWORK_ERROR:
             // 尝试重新加载视频源
-            console.log('网络错误');
+            console.log("网络错误");
 
             hls.startLoad(); // 重新加载
             // videoRef.value.load();
             break;
           case Hlsjs.ErrorTypes.MEDIA_ERROR:
-            console.log('媒体解码/播放错误');
+            console.log("媒体解码/播放错误");
             hls.recoverMediaError();
             // 如果有必要，可以尝试刷新页面或重启浏览器来清除可能存在的问题
             break;
@@ -655,11 +682,10 @@ const init = (): void => {
   }
 };
 
-
 // 切换清晰度
 const qualityLevelsHandle = (row, index) => {
-  hls.currentLevel = index
-  state.currentLevel = index
+  hls.currentLevel = index;
+  state.currentLevel = index;
   // if (index === -1) {
   //   // 启用自动画质
   //   hls.config.autoStartLoad = true;
@@ -673,22 +699,21 @@ const playbackRate = (row) => {
   videoRef.value.playbackRate = row;
 };
 
-
 onBeforeUnmount(() => {
   if (hls) {
     hls.destroy();
   }
-})
-
+});
 
 watch(
   () => props.src,
   (newVal, oldVal) => {
     nextTick(() => {
       // 初始化
-      init()
-    })
-  }, { immediate: true }
+      init();
+    });
+  },
+  { immediate: true }
 );
 
 onMounted(() => {
@@ -718,18 +743,15 @@ export default {
 @import "../assets/style/transition.scss";
 @import "../assets/style/animate.scss";
 
+/* width: v-bind(width);
+ height: v-bind(height);
+ width: $player-width;
+   height: $player-height;
+   */
+
 .player-wrap {
   // 通过v-bind绑定props中的width和height
-  width: v-bind(width);
-  height: v-bind(height);
-  $font-color: v-bind(theme);
-}
 
-.img {
-  width: 150px;
-  height: 150px;
-  position: absolute;
-  top: 0;
-  left: 0;
+  $font-color: v-bind(theme);
 }
 </style>

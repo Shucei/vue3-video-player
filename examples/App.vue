@@ -1,5 +1,5 @@
 <template>
-  <div style="width: 700px;margin: auto;">
+  <div style="margin: auto;">
     <videoPlay ref="video" v-bind="options" />
   </div>
 </template>
